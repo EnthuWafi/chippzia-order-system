@@ -11,8 +11,8 @@ function formatDate(data) {
     return date.toLocaleDateString("ms", options);
 }
 
-function assembleForm(response) {
-    let formHTML = "<form>";
+function assembleForm(response, url) {
+    let formHTML = `<form id='form' action='${url}' method='POST'>`;
 
     Object.keys(response.form).forEach((fieldName) => {
         const field = response.form[fieldName];

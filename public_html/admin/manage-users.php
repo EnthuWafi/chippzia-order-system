@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $managerID = htmlspecialchars($_POST["manager_id"]);
 
                     createEmployee($fname, $lname, $email, $phone, $username, $password, $managerID, $authorityLevel) or throw new Exception("Employee account wasn't able to be created!");
-                    makeToast("success", "Admin account successfully created!", "Success");
+                    makeToast("success", "Employee account successfully created!", "Success");
                 }
                 //edit employee
                 else if (isset($_POST["update_employee"])) {
@@ -51,6 +51,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $authorityLevel = htmlspecialchars($_POST["authority_level"]);
                     $managerID = htmlspecialchars($_POST["manager_id"]);
 
+                    //do stuff here
+
+                    makeToast("success", "Employee account successfully updated!", "Success");
                 }
             }
             else{
@@ -58,10 +61,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
         else {
-            throw new exception("Token not found");
+            throw new Exception("Token not found");
         }
     }
-    catch (exception $e){
+    catch (Exception $e){
         makeToast("error", $e->getMessage(), "Error");
     }
 
@@ -181,7 +184,7 @@ $token = getToken();
 <script type="text/javascript" src="<?= BASE_URL ?>assets/js/user.js"></script>
 <script>
     $(document).ready(function () {
-        const token = '<?php echo $_SESSION["token"]; ?>'; // Get the CSRF token
+        const token = '<?= $_SESSION["token"]; ?>'; // Get the CSRF token
 
         //add employee
 
@@ -200,7 +203,7 @@ $token = getToken();
             let managerOptions = null;
 
             $.ajax({
-                url: `<?= BASE_URL ?>api/employee.php/employeeID=${employeeId}`,
+                url: `<?= BASE_URL ?>api/employee.php?employeeID=${employeeId}`,
                 type: 'GET',
                 dataType: 'json',
                 success: function (response) {
@@ -211,7 +214,7 @@ $token = getToken();
                         }));
 
 
-                        const response = {
+                        const formInfo = {
                             form: {
                                 fname: {
                                     label: "First Name",
@@ -262,7 +265,7 @@ $token = getToken();
                             }
                         };
 
-                        const formHTML = assembleForm(response);
+                        const formHTML = assembleForm(formInfo, '<?= BASE_URL ?>admin/manage-users.php');
 
                         bootbox.dialog({
                             title: "Edit Employee",
@@ -277,40 +280,27 @@ $token = getToken();
                                     label: "Save Changes",
                                     className: "btn-primary",
                                     callback: function () {
-                                        const $form = $("<form>", {
-                                            action: "admin/manage-users.php",
-                                            method: "POST"
-                                        });
+                                        const form = $('#form');
 
-                                        $form.append($("<input>", {
+                                        form.append($("<input>", {
                                             type: "hidden",
                                             name: "employee_id",
                                             value: employeeId
                                         }));
 
-                                        $form.append($("<input>", {
+                                        form.append($("<input>", {
                                             type: "hidden",
                                             name: "update_employee",
                                             value: true
                                         }));
 
-                                        $form.append($("<input>", {
+                                        form.append($("<input>", {
                                             type: "hidden",
                                             name: "token",
                                             value: token
                                         }));
 
-                                        $("input, select").each(function() {
-                                            const name = $(this).attr("name");
-                                            const value = $(this).val();
-                                            $form.append($("<input>", {
-                                                type: "hidden",
-                                                name: name,
-                                                value: value
-                                            }));
-                                        });
-
-                                        $form.appendTo("body").submit();
+                                        form.submit();
                                     }
                                 }
                             }

@@ -23,5 +23,4 @@ if (isset($employeeID)) {
     }
 }
 
-
 echo json_encode(["status"=>"success", "message" => $employees]);
