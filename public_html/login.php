@@ -10,7 +10,7 @@ member_forbidden();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $postedToken = $_POST["token"];
     try{
-        if(!empty($postedToken)){
+        if(isset($postedToken)){
             if(isTokenValid($postedToken)){
                 if (isset($_POST["login"])) {
 
@@ -120,6 +120,8 @@ $token = getToken();
             <form action="<?php current_page(); ?>" method="post">
                 <div class="row pt-5">
                     <div class="col-md-6 offset-md-3">
+
+                        <input type="hidden" name="token" value="<?= $token ?>">
                         <h2 class="text-center mb-4">Login</h2>
                         <form>
                             <div class="mb-3">
@@ -140,9 +142,9 @@ $token = getToken();
                                 <label for="password" class="form-label">Password</label>
                                 <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password">
                             </div>
-                            <input type="hidden" name="token" value="<?= $token ?>">
+
                             <div class="text-center">
-                                <button type="submit" class="btn btn-primary">Login</button>
+                                <input class="btn btn-primary" type="submit" value="Login" name="login"/>
                             </div>
                             <div class="text-center mt-2">
                                 <span>Not a member? <a class="text-decoration-none" href="<?= BASE_URL ?>register.php">Register now!</a></span>

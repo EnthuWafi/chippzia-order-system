@@ -8,6 +8,9 @@ require('product.inc.php');
 const BASE_URL = '/kerepek/';
 const WEBSITE_NAME = 'Chipzzia';
 //functions
+function isAjaxRequest(): bool {
+    return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+}
 function current_page(): void
 {
     echo htmlspecialchars($_SERVER["PHP_SELF"]);
@@ -22,6 +25,37 @@ function displayToast() {
         showToastr($_SESSION["alert"]);
         unset($_SESSION["alert"]);
     }
+}
+
+//Prevent circular hierarchy in employee table
+function isHierarchyValid($employeeId, $managerId) {
+    $conn = OpenConn();
+
+    $currentManagerId = $managerId;
+
+    while ($currentManagerId) {
+        if ($currentManagerId == $employeeId) {
+            return false; // Circular reference found
+        }
+
+        $sql = "SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_ID = :managerId";
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ":managerId", $currentManagerId);
+
+        if (!oci_execute($stmt)) {
+            oci_free_statement($stmt);
+            CloseConn($conn);
+            return false;
+        }
+
+        $row = oci_fetch_assoc($stmt);
+        $currentManagerId = $row['MANAGER_ID'] ?? null;
+
+        oci_free_statement($stmt);
+    }
+
+    CloseConn($conn);
+    return true;
 }
 
 //TOASTS
@@ -384,13 +418,20 @@ function admin_displayEmployeeUsers($employeeUsers) {
                         <i class='bi bi-envelope'></i></a>
                     </div>
                     <div class='position-absolute top-50 end-0 translate-middle-y'>
-                        <form action='{$base_url}admin/manage-users.php' id='{$user["EMPLOYEE_ID"]}' method='post'>
-                            <input type='hidden' name='user_id' value='{$user["EMPLOYEE_ID"]}'>
-                            <a type='button' data-bs-toggle='modal' data-bs-target='#static' 
-                            onclick='updateModal({$user["EMPLOYEE_ID"]}, \"modal-btn\");' class='h4'>
-                            <input type='hidden' name='token' value='{$_SESSION["token"]}'>
-                            <i class='bi bi-trash'></i></a>
-                        </form> 
+                        <a type='button' class='h4 edit-employee' 
+                        data-username='{$user["USERNAME"]}' 
+                        data-employee-id='{$user["EMPLOYEE_ID"]}'
+                        data-first-name='{$user["FIRST_NAME"]}'
+                        data-last-name='{$user["LAST_NAME"]}'
+                        data-email='{$user["EMAIL"]}'
+                        data-phone='{$user["PHONE"]}'
+                        data-authority-level='{$user["AUTHORITY_LEVEL"]}'
+                        data-manager-id='{$user["MANAGER_ID"]}'>
+                            <i class='bi bi-pencil-square'></i>
+                        </a>
+                        <a type='button' class='h4 delete-employee' data-employee-id='{$user["EMPLOYEE_ID"]}'>
+                            <i class='bi bi-trash'></i>
+                        </a>
                     </div>
                     
                 </td>
@@ -432,12 +473,9 @@ function admin_displayMemberUsers($memberUsers) {
                         <i class='bi bi-whatsapp'></i></a>
                     </div>
                     <div class='position-absolute top-50 end-0 translate-middle-y'>
-                        <form action='{$base_url}admin/manage-users.php' id='{$user["CUSTOMER_ID"]}' method='post'>
-                            <input type='hidden' name='user_id' value='{$user["CUSTOMER_ID"]}'>
-                            <a type='button' data-bs-toggle='modal' data-bs-target='#static' onclick='updateModal({$user["CUSTOMER_ID"]}, \"modal-btn\");' class='h4'>
-                            <i class='bi bi-trash'></i></a>
-                            <input type='hidden' name='token' value='{$_SESSION["token"]}'>
-                        </form> 
+                        <a type='button' class='h4 delete-member' data-member-id='{$user["CUSTOMER_ID"]}'>
+                            <i class='bi bi-trash'></i>
+                        </a>
                     </div>
                        
                 </td>

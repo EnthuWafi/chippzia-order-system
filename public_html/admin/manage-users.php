@@ -27,17 +27,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     deleteEmployees($employeeID) or throw new Exception("Employee wasn't able to be deleted!");
                     makeToast("success", "Employee successfully deleted!", "Success");
                 }
-                //create admin todo
-                else if (isset($_POST["admin"])) {
+                //create employee todo
+                else if (isset($_POST["create_employee"])) {
                     $fname = htmlspecialchars($_POST["fname"]);
                     $lname = htmlspecialchars($_POST["lname"]);
                     $username = htmlspecialchars($_POST["username"]);
+                    $phone = htmlspecialchars($_POST["phone"]);
                     $email = htmlspecialchars($_POST["email"]);
                     $password = htmlspecialchars($_POST["password"]);
+                    $authorityLevel = htmlspecialchars($_POST["authority_level"]);
                     $managerID = htmlspecialchars($_POST["manager_id"]);
 
-                    createEmployee($fname, $lname, $email, null, $username, $password, $managerID) or throw new Exception("Employee account wasn't able to be created!");
+                    createEmployee($fname, $lname, $email, $phone, $username, $password, $managerID, $authorityLevel) or throw new Exception("Employee account wasn't able to be created!");
                     makeToast("success", "Admin account successfully created!", "Success");
+                }
+                //edit employee
+                else if (isset($_POST["update_employee"])) {
+                    $fname = htmlspecialchars($_POST["fname"]);
+                    $lname = htmlspecialchars($_POST["lname"]);
+                    $username = htmlspecialchars($_POST["username"]);
+                    $phone = htmlspecialchars($_POST["phone"]);
+                    $email = htmlspecialchars($_POST["email"]);
+                    $authorityLevel = htmlspecialchars($_POST["authority_level"]);
+                    $managerID = htmlspecialchars($_POST["manager_id"]);
+
                 }
             }
             else{
@@ -150,72 +163,6 @@ $token = getToken();
                             </div>
                         </div>
                     </div>
-                    <!-- modal create admin -->
-                    <div class='modal fade' id='adminStatic' data-bs-backdrop='static' data-bs-keyboard='false' tabindex='-1' aria-labelledby='staticBackdropLabel' aria-hidden='true'>
-                        <div class='modal-dialog'>
-                            <div class='modal-content'>
-                                <div class='modal-header bg-light-subtle'>
-                                    <h5 class='modal-title' id='staticBackdropLabel'>Create Admin Account</h5>
-                                    <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
-                                </div>
-                                <div class='modal-body'>
-                                    <form id="admin" action="<?= BASE_URL ?>admin/manage-users.php" method="post">
-                                        <div class="row mb-1">
-                                            <div class="col" id="name">
-                                                <label for="first-name" class="form-label">First Name</label>
-                                                <input type="text" class="form-control" id="first-name" name="fname" placeholder="First name">
-                                            </div>
-                                            <div class="col">
-                                                <label for="last-name" class="form-label">Last Name</label>
-                                                <input type="text" class="form-control" id="last-name" name="lname" placeholder="Last name">
-                                            </div>
-                                        </div>
-                                        <div class="row px-2 mb-1">
-                                            <label for="username" class="form-label">Username</label>
-                                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter username here" required>
-                                            <label for="email" class="form-label">Email</label>
-                                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter email here" required>
-                                            <label for="password" class="form-label">Password</label>
-                                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter password here" required>
-                                        </div>
-                                        <input type="hidden" name="token" value="<?= $token ?>">
-                                    </form>
-
-                                </div>
-                                <div class='modal-footer bg-light-subtle'>
-                                    <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Close</button>
-
-                                    <button type='submit' id="modal-btn-admin" form="admin" name="admin" value="1" class='btn btn-danger'>Create Account</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <!-- modal delete -->
-                    <div class='modal fade' id='static' data-bs-backdrop='static' data-bs-keyboard='false' tabindex='-1' aria-labelledby='staticBackdropLabel' aria-hidden='true'>
-                        <div class='modal-dialog'>
-                            <div class='modal-content'>
-                                <div class='modal-header bg-light-subtle'>
-                                    <h5 class='modal-title' id='staticBackdropLabel'>Delete user?</h5>
-                                    <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
-                                </div>
-                                <div class='modal-body bg-danger-subtle'>
-                                    <div class="px-3">
-                                        <div class="mb-1">
-                                            <span class="fw-bolder">Warning</span>
-                                        </div>
-                                        <span class="text-black mt-3">This action cannot be reversed!<br>Proceed with caution.</span>
-                                    </div>
-
-                                </div>
-                                <div class='modal-footer bg-light-subtle'>
-                                    <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Close</button>
-                                    <button type='submit' id="modal-btn" form="" name="delete" value="1" class='btn btn-danger'>I understand</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
 
                 </div>
@@ -231,6 +178,252 @@ $token = getToken();
 </div>
 <?php body_script_tag_content();?>
 <script type="text/javascript" src="<?= BASE_URL ?>assets/js/modal.js"></script>
+<script type="text/javascript" src="<?= BASE_URL ?>assets/js/user.js"></script>
+<script>
+    $(document).ready(function () {
+        const token = '<?php echo $_SESSION["token"]; ?>'; // Get the CSRF token
+
+        //add employee
+
+        //
+
+        $('.edit-employee').on('click', function () {
+            const employeeId = $(this).data('employee-id');
+            const username = $(this).data('username');
+            const firstName = $(this).data('first-name');
+            const lastName = $(this).data('last-name');
+            const email = $(this).data('email');
+            const phone = $(this).data('phone');
+            const authorityLevel = $(this).data('authority-level');
+            const managerId = $(this).data('manager-id');
+
+            let managerOptions = null;
+
+            $.ajax({
+                url: `<?= BASE_URL ?>api/employee.php/employeeID=${employeeId}`,
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    if (response && response.status === "success") {
+                        managerOptions = response.message.map(manager => ({
+                            value: manager.EMPLOYEE_ID,
+                            label: `${manager.FIRST_NAME} ${manager.LAST_NAME}`
+                        }));
+
+
+                        const response = {
+                            form: {
+                                fname: {
+                                    label: "First Name",
+                                    type: "text",
+                                    value: firstName,
+                                    placeholder: "Enter first name"
+                                },
+                                lname: {
+                                    label: "Last Name",
+                                    type: "text",
+                                    value: lastName,
+                                    placeholder: "Enter last name"
+                                },
+                                username: {
+                                    label: "Username",
+                                    type: "text",
+                                    value: username,
+                                    placeholder: "Enter username"
+                                },
+                                email: {
+                                    label: "Email",
+                                    type: "email",
+                                    value: email,
+                                    placeholder: "Enter email"
+                                },
+                                phone: {
+                                    label: "Phone",
+                                    type: "text",
+                                    value: phone,
+                                    placeholder: "Enter phone number"
+                                },
+                                authorityLevel: {
+                                    label: "Authority",
+                                    type: "select",
+                                    value: authorityLevel,
+                                    options: [
+                                        {value: 1, label: "Super Admin"},
+                                        {value: 2, label: "Admin"},
+                                        {value: 3, label: "Employee"}
+                                    ]
+                                },
+                                managerId: {
+                                    label: "Manager",
+                                    type: "select",
+                                    value: managerId,
+                                    options: managerOptions
+                                }
+                            }
+                        };
+
+                        const formHTML = assembleForm(response);
+
+                        bootbox.dialog({
+                            title: "Edit Employee",
+                            message: formHTML,
+                            size: "large",
+                            buttons: {
+                                cancel: {
+                                    label: "Cancel",
+                                    className: "btn-secondary"
+                                },
+                                save: {
+                                    label: "Save Changes",
+                                    className: "btn-primary",
+                                    callback: function () {
+                                        const $form = $("<form>", {
+                                            action: "admin/manage-users.php",
+                                            method: "POST"
+                                        });
+
+                                        $form.append($("<input>", {
+                                            type: "hidden",
+                                            name: "employee_id",
+                                            value: employeeId
+                                        }));
+
+                                        $form.append($("<input>", {
+                                            type: "hidden",
+                                            name: "update_employee",
+                                            value: true
+                                        }));
+
+                                        $form.append($("<input>", {
+                                            type: "hidden",
+                                            name: "token",
+                                            value: token
+                                        }));
+
+                                        $("input, select").each(function() {
+                                            const name = $(this).attr("name");
+                                            const value = $(this).val();
+                                            $form.append($("<input>", {
+                                                type: "hidden",
+                                                name: name,
+                                                value: value
+                                            }));
+                                        });
+
+                                        $form.appendTo("body").submit();
+                                    }
+                                }
+                            }
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log("Error fetching managers:", error);
+                    bootbox.alert("Error fetching manager data. Please try again later.");
+                }
+            });
+        });
+
+        $('.delete-employee').on('click', function (e) {
+            const employeeId = $(this).data('employee-id'); // Get user ID from data attribute
+
+            // Show Bootbox confirmation modal
+            bootbox.confirm({
+                title: "Confirm Deletion",
+                message: "Are you sure you want to delete this employee? This action cannot be undone.",
+                buttons: {
+                    confirm: {
+                        label: "Yes, Delete",
+                        className: "btn-danger"
+                    },
+                    cancel: {
+                        label: "Cancel",
+                        className: "btn-secondary"
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        const form = $('<form>', {
+                            action: '<?= BASE_URL ?>admin/manage-users.php',
+                            method: 'POST'
+                        });
+
+                        form.append($('<input>', {
+                            type: 'hidden',
+                            name: 'employee_id',
+                            value: employeeId
+                        }));
+
+                        form.append($('<input>', {
+                            type: 'hidden',
+                            name: 'token',
+                            value: token
+                        }));
+
+                        form.append($('<input>', {
+                            type: 'hidden',
+                            name: 'delete_employee',
+                            value: true
+                        }));
+
+                        $('body').append(form);
+                        form.submit();
+                    }
+                }
+            });
+        });
+
+        $('.delete-member').on('click', function (e) {
+            e.preventDefault();
+
+            const memberId = $(this).data('member-id'); // Get the member ID
+
+            bootbox.confirm({
+                title: "Confirm Deletion",
+                message: "Are you sure you want to delete this member? This action cannot be undone.",
+                buttons: {
+                    confirm: {
+                        label: "Yes, Delete",
+                        className: "btn-danger"
+                    },
+                    cancel: {
+                        label: "Cancel",
+                        className: "btn-secondary"
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        const form = $('<form>', {
+                            action: '<?= BASE_URL ?>admin/manage-users.php',
+                            method: 'POST'
+                        });
+
+                        form.append($('<input>', {
+                            type: 'hidden',
+                            name: 'member_id',
+                            value: memberId
+                        }));
+
+                        form.append($('<input>', {
+                            type: 'hidden',
+                            name: 'token',
+                            value: token
+                        }));
+
+                        form.append($('<input>', {
+                            type: 'hidden',
+                            name: 'delete_member',
+                            value: true
+                        }));
+
+                        $('body').append(form);
+                        form.submit();
+                    }
+                }
+            });
+        });
+    });
+</script>
 </body>
 
 </html>

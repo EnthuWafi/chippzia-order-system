@@ -318,18 +318,7 @@ function retrieveMember($customerID) {
     die();
 }
 function retrieveEmployee($employeeID) {
-    $sql = "SELECT
-                employee_id AS employee_id,
-                first_name AS first_name,
-                last_name AS last_name,
-                username AS username,
-                password_hash AS password_hash,
-                email AS email,
-                phone AS phone,
-                authority_level AS authority_level,
-                created_at AS created_at,
-                deleted_at AS deleted_at,
-                manager_id AS manager_id
+    $sql = "SELECT *
             FROM EMPLOYEES
             WHERE EMPLOYEE_ID = :employeeID";
 
@@ -724,6 +713,9 @@ function retrieveCustomerNameLike($query) {
 
     return null;
 }
+
+// NEW FUNCTION WAW
+
 
 /* Outdated functions below */
 

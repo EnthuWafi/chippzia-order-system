@@ -19,7 +19,7 @@ function head_tag_content(): void
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.css' integrity='sha512-oe8OpYjBaDWPt2VmSFR+qYOdnTjeV9QPLJUeqZyprDEQvQLJ9C5PCFclxwNuvb/GQgQngdCXzKSFltuHD3eCxA==' crossorigin='anonymous' referrerpolicy='no-referrer' />
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css'>
     <link rel='stylesheet' href='{$base_url}assets/css/main.css'>
-     ";
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/6.0.0/bootbox.min.js' integrity='sha512-oVbWSv2O4y1UzvExJMHaHcaib4wsBMS5tEP3/YkMP6GmkwRJAa79Jwsv+Y/w7w2Vb/98/Xhvck10LyJweB8Jsw==' crossorigin='anonymous' referrerpolicy='no-referrer'></script>";
 }
 
 function body_script_tag_content() {
@@ -29,6 +29,7 @@ function body_script_tag_content() {
     <script src='https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js'></script>
     
     <script src='{$base_url}assets/js/main.js'></script>
+    <script src='{$base_url}assets/js/custom.js'></script>
     ";
 }
 
