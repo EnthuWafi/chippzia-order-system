@@ -10,7 +10,7 @@ if (!isAjaxRequest()) {
 }
 
 //get all employee except current one
-$employeeID = $_GET["employeeID"];
+$employeeID = $_GET["employeeID"] ?? null;
 
 $employees = retrieveAllEmployees();
 

@@ -35,8 +35,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $phone = htmlspecialchars($_POST["phone"]);
                     $email = htmlspecialchars($_POST["email"]);
                     $password = htmlspecialchars($_POST["password"]);
-                    $authorityLevel = htmlspecialchars($_POST["authority_level"]);
-                    $managerID = htmlspecialchars($_POST["manager_id"]);
+                    $authorityLevel = htmlspecialchars($_POST["authorityLevel"]);
+                    $managerID = htmlspecialchars($_POST["managerId"]);
+
+                    if (empty($managerID)) {
+                        $managerID = null;
+                    }
 
                     createEmployee($fname, $lname, $email, $phone, $username, $password, $managerID, $authorityLevel) or throw new Exception("Employee account wasn't able to be created!");
                     makeToast("success", "Employee account successfully created!", "Success");
@@ -44,14 +48,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 //edit employee
                 else if (isset($_POST["update_employee"])) {
                     $fname = htmlspecialchars($_POST["fname"]);
+                    $employee_id = htmlspecialchars($_POST["employee_id"]);
                     $lname = htmlspecialchars($_POST["lname"]);
                     $username = htmlspecialchars($_POST["username"]);
                     $phone = htmlspecialchars($_POST["phone"]);
                     $email = htmlspecialchars($_POST["email"]);
-                    $authorityLevel = htmlspecialchars($_POST["authority_level"]);
-                    $managerID = htmlspecialchars($_POST["manager_id"]);
+                    $authorityLevel = htmlspecialchars($_POST["authorityLevel"]);
+                    $managerID = htmlspecialchars($_POST["managerId"]);
 
                     //do stuff here
+                    if (!empty($managerID)) {
+                        if (!isHierarchyValid($employee_id, $managerID)) {
+                            throw new Exception("Circular hierarchy detected!");
+                        }
+                    }
+                    else {
+                        $managerID = null;
+                    }
+
+                    updateEmployee($employee_id, $fname, $lname, $email, $phone, $username, $managerID, $authorityLevel)
+                    or throw new Exception("Employee account wasn't able to be updated!");
 
                     makeToast("success", "Employee account successfully updated!", "Success");
                 }
@@ -113,7 +129,7 @@ $token = getToken();
                                     <span class="h3"><?= $employeeCount ?> employees found</span>
                                 </div>
                                 <div class="col text-end ">
-                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#adminStatic">
+                                    <button type="button" class="btn btn-danger add-employee">
                                         <span class="h5"><i class="bi bi-plus-circle"> </i>Add</span>
                                     </button>
                                 </div>
@@ -187,8 +203,130 @@ $token = getToken();
         const token = '<?= $_SESSION["token"]; ?>'; // Get the CSRF token
 
         //add employee
+        $('.add-employee').on('click', function () {
+            const currentEmployeeID = <?= $_SESSION['user_data']['EMPLOYEE_ID']; ?>;
+            let managerOptions = null;
 
-        //
+            $.ajax({
+                url: `<?= BASE_URL ?>api/employee.php`,
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    if (response && response.status === "success") {
+                        let messageData = [];
+
+                        // Normalize response.message to always be an array
+                        if (Array.isArray(response.message)) {
+                            messageData = response.message;
+                        } else if (typeof response.message === "object") {
+                            messageData = Object.values(response.message);
+                        }
+
+                        let managerOptions = messageData.map(manager => ({
+                            value: manager.EMPLOYEE_ID,
+                            label: `${manager.FIRST_NAME} ${manager.LAST_NAME}`
+                        }));
+
+                        // Add "No Manager" option at the start of the options array
+                        managerOptions.unshift({
+                            value: "",
+                            label: "No Manager"
+                        });
+
+
+                        const formInfo = {
+                            form: {
+                                fname: {
+                                    label: "First Name",
+                                    type: "text",
+                                    value: "",
+                                    placeholder: "Enter first name"
+                                },
+                                lname: {
+                                    label: "Last Name",
+                                    type: "text",
+                                    value: "",
+                                    placeholder: "Enter last name"
+                                },
+                                username: {
+                                    label: "Username",
+                                    type: "text",
+                                    value: "",
+                                    placeholder: "Enter username"
+                                },
+                                email: {
+                                    label: "Email",
+                                    type: "email",
+                                    value: "",
+                                    placeholder: "Enter email"
+                                },
+                                phone: {
+                                    label: "Phone",
+                                    type: "text",
+                                    value: "",
+                                    placeholder: "Enter phone number"
+                                },
+                                authorityLevel: {
+                                    label: "Authority",
+                                    type: "select",
+                                    value: 3,
+                                    options: [
+                                        {value: 1, label: "Super Admin"},
+                                        {value: 2, label: "Admin"},
+                                        {value: 3, label: "Employee"}
+                                    ]
+                                },
+                                managerId: {
+                                    label: "Manager",
+                                    type: "select",
+                                    value: currentEmployeeID,
+                                    options: managerOptions
+                                }
+                            }
+                        };
+
+                        const formHTML = assembleForm(formInfo, '<?= BASE_URL ?>admin/manage-users.php');
+
+                        bootbox.dialog({
+                            title: "Create Employee",
+                            message: formHTML,
+                            size: "large",
+                            buttons: {
+                                cancel: {
+                                    label: "Cancel",
+                                    className: "btn-secondary"
+                                },
+                                save: {
+                                    label: "Save Changes",
+                                    className: "btn-primary",
+                                    callback: function () {
+                                        const form = $('#form');
+
+                                        form.append($("<input>", {
+                                            type: "hidden",
+                                            name: "create_employee",
+                                            value: true
+                                        }));
+
+                                        form.append($("<input>", {
+                                            type: "hidden",
+                                            name: "token",
+                                            value: token
+                                        }));
+
+                                        form.submit();
+                                    }
+                                }
+                            }
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log("Error fetching managers:", error);
+                    bootbox.alert("Error fetching manager data. Please try again later.");
+                }
+            });
+        });
 
         $('.edit-employee').on('click', function () {
             const employeeId = $(this).data('employee-id');
@@ -208,10 +346,25 @@ $token = getToken();
                 dataType: 'json',
                 success: function (response) {
                     if (response && response.status === "success") {
-                        managerOptions = response.message.map(manager => ({
+                        let messageData = [];
+
+                        // Normalize response.message to always be an array
+                        if (Array.isArray(response.message)) {
+                            messageData = response.message;
+                        } else if (typeof response.message === "object") {
+                            messageData = Object.values(response.message);
+                        }
+
+                        let managerOptions = messageData.map(manager => ({
                             value: manager.EMPLOYEE_ID,
                             label: `${manager.FIRST_NAME} ${manager.LAST_NAME}`
                         }));
+
+                        // Add "No Manager" option at the start of the options array
+                        managerOptions.unshift({
+                            value: "",
+                            label: "No Manager"
+                        });
 
 
                         const formInfo = {

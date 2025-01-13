@@ -715,6 +715,48 @@ function retrieveCustomerNameLike($query) {
 }
 
 // NEW FUNCTION WAW
+//Update employee
+function updateEmployee($employeeID, $fname, $lname, $email, $phone, $username, $managerID, $authorityLevel=1) {
+    $conn = OpenConn();
+    $sql = "
+        UPDATE EMPLOYEES
+        SET FIRST_NAME = :firstname, LAST_NAME = :lastname, 
+            USERNAME = :username, EMAIL = :email, PHONE = :phone, 
+            MANAGER_ID = :managerid, AUTHORITY_LEVEL = :authoritylevel
+        WHERE EMPLOYEE_ID = :employeeid";
+
+
+    try {
+        $stmt = oci_parse($conn, $sql);
+
+        oci_bind_by_name($stmt, ':username', $username);
+        oci_bind_by_name($stmt, ':firstname', $fname);
+        oci_bind_by_name($stmt, ':lastname', $lname);
+        oci_bind_by_name($stmt, ':email', $email);
+        oci_bind_by_name($stmt, ':phone', $phone);
+        oci_bind_by_name($stmt, ':managerid', $managerID);
+        oci_bind_by_name($stmt, ':authoritylevel', $authorityLevel);
+        oci_bind_by_name($stmt, ':employeeid', $employeeID);
+
+        if (!oci_execute($stmt)) {
+            throw new Exception(oci_error($stmt)['message']);
+        }
+
+        oci_free_statement($stmt);
+        CloseConn($conn);
+
+        return true;
+    }
+    catch (Exception $e) {
+        createLog($e->getMessage());
+        if (isset($stmt)) {
+            oci_free_statement($stmt);
+        }
+        CloseConn($conn);
+        makeToast("error", "Error", "Error updating employees account! Please try again!");
+        return false;
+    }
+}
 
 
 /* Outdated functions below */

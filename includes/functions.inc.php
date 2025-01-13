@@ -48,8 +48,8 @@ function isHierarchyValid($employeeId, $managerId) {
             return false;
         }
 
-        $row = oci_fetch_assoc($stmt);
-        $currentManagerId = $row['MANAGER_ID'] ?? null;
+        $result = oci_fetch_assoc($stmt);
+        $currentManagerId = $result['MANAGER_ID'] ?? null;
 
         oci_free_statement($stmt);
     }
