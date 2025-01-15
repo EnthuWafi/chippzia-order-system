@@ -11,20 +11,19 @@ const WEBSITE_NAME = 'Chipzzia';
 function isAjaxRequest(): bool {
     return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 }
+
+//Return true, only if authority matches or is greater than the level specified
+// Smaller level indicate higher authority 1- Super Admin 2- Admin 3- Employee
+function checkAuthority($level) {
+    $authorityLevel = $_SESSION['user_data']['AUTHORITY_LEVEL'];
+    if (isset($authorityLevel) && $authorityLevel <= $level) {
+        return true;
+    }
+    return false;
+}
 function current_page(): void
 {
     echo htmlspecialchars($_SERVER["PHP_SELF"]);
-}
-
-function makeToast($type, $message, $title) {
-    $_SESSION["alert"] = ["type"=>$type, "message"=>$message, "title"=>$title];
-}
-// TOASTS
-function displayToast() {
-    if (isset($_SESSION["alert"])){
-        showToastr($_SESSION["alert"]);
-        unset($_SESSION["alert"]);
-    }
 }
 
 //Prevent circular hierarchy in employee table
@@ -58,31 +57,49 @@ function isHierarchyValid($employeeId, $managerId) {
     return true;
 }
 
+function makeToast($type, $message, $title) {
+    if (!isset($_SESSION["alerts"])) {
+        $_SESSION["alerts"] = [];
+    }
+    $_SESSION["alerts"][] = ["type" => $type, "message" => $message, "title" => $title];
+}
+// TOASTS
+function displayToast() {
+    if (isset($_SESSION["alerts"])) {
+        foreach ($_SESSION["alerts"] as $alert) {
+            showToastr($alert);
+        }
+        unset($_SESSION["alerts"]);
+    }
+}
+
+
+
 //TOASTS
 function showToastr($alert): void
 {
     echo ("<script>
-window.onload = function() {
-    toastr.options = {
-      \"closeButton\": false,
-      \"debug\": false,
-      \"newestOnTop\": false,
-      \"progressBar\": false,
-      \"positionClass\": \"toast-top-right\",
-      \"preventDuplicates\": false,
-      \"onclick\": null,
-      \"showDuration\": \"300\",
-      \"hideDuration\": \"1000\",
-      \"timeOut\": \"5000\",
-      \"extendedTimeOut\": \"1000\",
-      \"showEasing\": \"swing\",
-      \"hideEasing\": \"linear\",
-      \"showMethod\": \"fadeIn\",
-      \"hideMethod\": \"fadeOut\"
-    }
-    toastr[\"{$alert["type"]}\"](\"{$alert["message"]}\", \"{$alert["title"]}\");
-}
-</script>");
+    window.addEventListener('load', function() {
+        toastr.options = {
+            \"closeButton\": false,
+            \"debug\": false,
+            \"newestOnTop\": true,
+            \"progressBar\": false,
+            \"positionClass\": \"toast-top-right\",
+            \"preventDuplicates\": false,
+            \"onclick\": null,
+            \"showDuration\": \"300\",
+            \"hideDuration\": \"1000\",
+            \"timeOut\": \"5000\",
+            \"extendedTimeOut\": \"1000\",
+            \"showEasing\": \"swing\",
+            \"hideEasing\": \"linear\",
+            \"showMethod\": \"fadeIn\",
+            \"hideMethod\": \"fadeOut\"
+        };
+        toastr[\"{$alert["type"]}\"](\"{$alert["message"]}\", \"{$alert["title"]}\");
+    });
+    </script>");
 }
 
 
@@ -417,7 +434,7 @@ function admin_displayEmployeeUsers($employeeUsers) {
                         <a type='button' class='h4' href='mailto:{$user["EMAIL"]}'>
                         <i class='bi bi-envelope'></i></a>
                     </div>
-                    <div class='position-absolute top-50 end-0 translate-middle-y'>
+                    <div class='position-absolute top-50 start-50 translate-middle-y'>
                         <a type='button' class='h4 edit-employee' 
                         data-username='{$user["USERNAME"]}' 
                         data-employee-id='{$user["EMPLOYEE_ID"]}'
@@ -429,6 +446,8 @@ function admin_displayEmployeeUsers($employeeUsers) {
                         data-manager-id='{$user["MANAGER_ID"]}'>
                             <i class='bi bi-pencil-square'></i>
                         </a>
+                    </div>
+                    <div class='position-absolute top-50 start-100 translate-middle-y'>
                         <a type='button' class='h4 delete-employee' data-employee-id='{$user["EMPLOYEE_ID"]}'>
                             <i class='bi bi-trash'></i>
                         </a>

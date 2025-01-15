@@ -24,6 +24,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
                 else if (isset($_POST["delete_employee"])) {
                     $employeeID = htmlspecialchars($_POST["employee_id"]);
+
+                    //Check here
+                    // If current user == the employee being deleted, no
+
+
+                    // If employee is the only super admin user, no
+
                     deleteEmployees($employeeID) or throw new Exception("Employee wasn't able to be deleted!");
                     makeToast("success", "Employee successfully deleted!", "Success");
                 }
@@ -196,11 +203,9 @@ $token = getToken();
     </div>
 </div>
 <?php body_script_tag_content();?>
-<script type="text/javascript" src="<?= BASE_URL ?>assets/js/modal.js"></script>
-<script type="text/javascript" src="<?= BASE_URL ?>assets/js/user.js"></script>
 <script>
     $(document).ready(function () {
-        const token = '<?= $_SESSION["token"]; ?>'; // Get the CSRF token
+        const token = '<?= $_SESSION["token"]; ?>';
 
         //add employee
         $('.add-employee').on('click', function () {
@@ -222,7 +227,7 @@ $token = getToken();
                             messageData = Object.values(response.message);
                         }
 
-                        let managerOptions = messageData.map(manager => ({
+                        managerOptions = messageData.map(manager => ({
                             value: manager.EMPLOYEE_ID,
                             label: `${manager.FIRST_NAME} ${manager.LAST_NAME}`
                         }));
@@ -355,7 +360,7 @@ $token = getToken();
                             messageData = Object.values(response.message);
                         }
 
-                        let managerOptions = messageData.map(manager => ({
+                        managerOptions = messageData.map(manager => ({
                             value: manager.EMPLOYEE_ID,
                             label: `${manager.FIRST_NAME} ${manager.LAST_NAME}`
                         }));
@@ -467,7 +472,7 @@ $token = getToken();
             });
         });
 
-        $('.delete-employee').on('click', function (e) {
+        $('.delete-employee').on('click', function () {
             const employeeId = $(this).data('employee-id'); // Get user ID from data attribute
 
             // Show Bootbox confirmation modal
@@ -516,9 +521,7 @@ $token = getToken();
             });
         });
 
-        $('.delete-member').on('click', function (e) {
-            e.preventDefault();
-
+        $('.delete-member').on('click', function () {
             const memberId = $(this).data('member-id'); // Get the member ID
 
             bootbox.confirm({

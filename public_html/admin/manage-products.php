@@ -11,54 +11,113 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try{
         if(!empty($postedToken)){
             if(isTokenValid($postedToken)){
+                //update product todo
+                if (isset($_POST["update"])) {
+                    $productID = htmlspecialchars($_POST["product_id"]);
+
+                    $productName = htmlspecialchars($_POST["product_name"]);
+                    $productPrice = htmlspecialchars($_POST["product_price"]);
+                    $inventoryQuantity = htmlspecialchars($_POST["inventory_quantity"]);
+                    $productDescription = htmlspecialchars($_POST["product_desc"]);
+
+                    //create image
+                    $file = $_FILES['product_image'];
+
+                    if (isset($file) && $file['error'] !== UPLOAD_ERR_NO_FILE) {
+                        $fileName = $file['name'];
+                        $fileTmpName = $file['tmp_name'];
+                        $fileSize = $file['size'];
+
+                        $fileArr = explode('.', $fileName);
+                        $fileExt = strtolower(end($fileArr));
+
+                        $allowed = ['jpg','jpeg','png'];
+
+                        $fileNameTrue = str_replace(" ", "-", reset($fileArr));
+                        $fileNameNew = $fileNameTrue . "." . $fileExt;
+                        $fileDestinationRelative = BASE_URL . 'assets/images/' . $fileNameNew;
+                        $fileDestination = $_SERVER['DOCUMENT_ROOT'] . $fileDestinationRelative;
+
+                        if (in_array($fileExt, $allowed)) {
+                            if ($fileSize < 10485760) {
+                                move_uploaded_file($fileTmpName, $fileDestination);
+                            }
+                            else {
+                                makeToast("error", "File too large!", "Error");
+                            }
+                        }
+                        else{
+                            makeToast("error", "Filetype is not allowed!", "Error");
+                        }
+                    }
+                    else {
+                        $fileDestinationRelative = htmlspecialchars($_POST["product_image_original"]);
+                    }
+
+                    //create product here
+                    updateProduct($productID, $productName, $fileDestinationRelative, $productPrice, $inventoryQuantity, $productDescription)
+                    or throw new Exception("Couldn't update product");
+
+                    makeToast("success", "Product successfully updated!", "Success");
+
+                }
                 //delete product todo
-                if (isset($_POST["delete"])) {
+                else if (isset($_POST["delete"])) {
                     $productID = htmlspecialchars($_POST["product_id"]);
 
                     deleteProduct($productID) or throw new Exception("Couldn't delete product");
                     makeToast("success", "Product successfully deleted!", "Success");
                 }
-                //create product todo
-                else if (isset($_POST["product"])) {
+                else if (isset($_POST["create"])) {
                     $productName = htmlspecialchars($_POST["product_name"]);
                     $productPrice = htmlspecialchars($_POST["product_price"]);
+                    $inventoryQuantity = htmlspecialchars($_POST["inventory_quantity"]);
+                    $productDescription = htmlspecialchars($_POST["product_desc"]);
 
-                    //create image
+                    $defaultImage = BASE_URL . 'assets/images/default.jpg';
+                    $fileDestinationRelative = $defaultImage;
+
+                    // Process image upload
                     $file = $_FILES['product_image'];
+                    if (isset($file) && $file['error'] !== UPLOAD_ERR_NO_FILE) {
+                        $fileName = $file['name'];
+                        $fileTmpName = $file['tmp_name'];
+                        $fileSize = $file['size'];
 
-                    $fileName = $file['name'];
-                    $fileTmpName = $file['tmp_name'];
-                    $fileSize = $file['size'];
+                        $fileArr = explode('.', $fileName);
+                        $fileExt = strtolower(end($fileArr));
 
-                    $fileArr = explode('.', $fileName);
-                    $fileExt = strtolower(end($fileArr));
+                        $allowed = ['jpg', 'jpeg', 'png'];
 
-                    $allowed = ['jpg','jpeg','png'];
+                        // Generate safe filename
+                        $fileNameTrue = str_replace(" ", "-", reset($fileArr));
+                        $fileNameNew = $fileNameTrue . "." . $fileExt;
+                        $fileDestinationRelative = BASE_URL . 'assets/images/' . $fileNameNew;
+                        $fileDestination = $_SERVER['DOCUMENT_ROOT'] . '/' . $fileDestinationRelative;
 
-                    if ($file["error"]) {
-                        throw new Exception($file["error"]);
-                    }
+                        //error checking
+                        try {
+                            if (!in_array($fileExt, $allowed)) {
+                                throw new Exception("File type is not allowed!");
+                            }
 
-                    $fileNameTrue = str_replace(" ", "-", reset($fileArr));
-                    $fileNameNew = $fileNameTrue . "." . $fileExt;
-                    $fileDestinationRelative = BASE_URL . 'assets/images/' . $fileNameNew;
-                    $fileDestination = $_SERVER['DOCUMENT_ROOT'] . $fileDestinationRelative;
+                            if ($fileSize >= 10485760) { // 10MB
+                                throw new Exception("File too large! Max size: 10MB.");
+                            }
 
-
-                    if (in_array($fileExt, $allowed)) {
-                        if ($fileSize < 10485760) {
-                            move_uploaded_file($fileTmpName, $fileDestination);
+                            if (!move_uploaded_file($fileTmpName, $fileDestination)) {
+                                throw new Exception("Couldn't upload file");
+                            }
+                        } catch (Exception $e) {
+                            makeToast('error', $e->getMessage(), "Error");
+                            $fileDestinationRelative = $defaultImage; //reset to default
                         }
-                        else {
-                            throw new Exception("File too big");
-                        }
-                    }
-                    else{
-                        throw new Exception("Filetype not allowed");
+
                     }
 
-                    //create product
-                    createProduct($productName, $fileDestinationRelative, $productPrice) or throw new Exception("Couldn't create product");
+                    // Create product
+                    createProduct($productName, $fileDestinationRelative, $productPrice, $inventoryQuantity, $productDescription)
+                    or throw new Exception("Couldn't create product");
 
                     makeToast("success", "Product successfully created!", "Success");
                 }
@@ -68,10 +127,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
         else {
-            throw new exception("Token not found");
+            throw new Exception("Token not found");
         }
     }
-    catch (exception $e){
+    catch (Exception $e){
         makeToast("error", $e->getMessage(), "Error");
     }
 
@@ -91,7 +150,7 @@ $token = getToken();
 
 <head>
     <?php head_tag_content(); ?>
-    <title>Kerepek Funz | Manage Products</title>
+    <title><?= WEBSITE_NAME ?> | Manage Products</title>
 </head>
 <body>
 <div class="container-fluid">
@@ -115,121 +174,70 @@ $token = getToken();
                                 <span class="fs-1 mb-3">Products</span>
                             </div>
                             <div class="col text-end">
-                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#productStatic">
+                                <button type="button" class="btn btn-danger add-product">
                                     <span class="h5"><i class="bi bi-plus-circle"> </i>Add</span>
                                 </button>
                             </div>
-                            <table class="table table-responsive table-hover">
-                                <thead>
+                            <table class="table table-responsive table-hover table-bordered">
+                                <thead class="table-light">
                                 <tr>
-                                    <th scope="col">Code</th>
+                                    <th scope="col">ID</th>
                                     <th scope="col">Image</th>
                                     <th scope="col">Name</th>
+                                    <th scope="col">Description</th>
                                     <th scope="col">Price</th>
+                                    <th scope="col">Inventory Quantity</th>
+                                    <th scope="col">Creation Date</th>
                                     <th scope="col" class="text-center">Action</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 <?php
                                 $base_url = BASE_URL;
-                                if ($products != null){
-                                    foreach ($products as $product){
+                                if ($products != null) {
+                                    foreach ($products as $product) {
                                         $price = number_format((float)$product["PRODUCT_PRICE"], 2, ".", ",");
                                         echo "
-                                            <tr class='align-middle'>
-                                                <th scope='row'>{$product["PRODUCT_ID"]}</th>
-                                                <td><img class='img-fluid w-100' src='{$product["PRODUCT_IMAGE"]}' style='max-width: 200px;'></td>
-                                                <td>{$product["PRODUCT_NAME"]}</td>
-                                                <td>RM{$price}</td>
-                                                <td class='text-center'>
-                                                     <form action='{$base_url}admin/manage-products.php' id='{$product["PRODUCT_ID"]}' method='post'>
-                                                        <input type='hidden' name='product_id' value='{$product["PRODUCT_ID"]}'>
-                                                        <input type='hidden' name='token' value='{$_SESSION["token"]}'>
-                                                        <a type='button' data-bs-toggle='modal' data-bs-target='#static' onclick='updateModal({$product["PRODUCT_ID"]}, \"modal-btn-delete\");' class='h4'> 
-                                                        <i class='bi bi-trash'></i></a>
-                                                    </form>   
-                                                </td>
-                                            </tr>";
+                    <tr class='align-middle'>
+                        <th scope='row'>{$product["PRODUCT_ID"]}</th>
+                        <td><img class='img-fluid w-100' src='{$product["PRODUCT_IMAGE"]}' style='max-width: 150px; height: auto;'></td>
+                        <td>{$product["PRODUCT_NAME"]}</td>
+                        <td>{$product["PRODUCT_DESCRIPTION"]}</td>
+                        <td>RM{$price}</td>
+                        <td>{$product["INVENTORY_QUANTITY"]}</td>
+                        <td>{$product["CREATED_AT"]}</td>
+                        <td class='text-center'>
+                            <a type='button' class='h4 edit-product' 
+                               data-product-id='{$product["PRODUCT_ID"]}' 
+                               data-product-name='{$product["PRODUCT_NAME"]}' 
+                               data-product-desc='{$product["PRODUCT_DESCRIPTION"]}' 
+                               data-product-price='{$product["PRODUCT_PRICE"]}' 
+                               data-inventory-quantity='{$product["INVENTORY_QUANTITY"]}' 
+                               data-product-image='{$product["PRODUCT_IMAGE"]}'> 
+                               <i class='bi bi-pencil-square'></i>
+                            </a>
+                            <a type='button' class='h4 delete-product' 
+                               data-product-id='{$product["PRODUCT_ID"]}'> 
+                               <i class='bi bi-trash'></i>
+                            </a>
+                        </td>
+                    </tr>";
                                     }
-                                }
-                                else {
+                                } else {
                                     echo "
-                                        <tr class='align-middle'>
-                                        <td class='text-center' colspan='5'>No products</td> 
-                                        </tr>";
+                <tr class='align-middle'>
+                    <td class='text-center' colspan='8'>No products available</td> 
+                </tr>";
                                 }
                                 ?>
                                 </tbody>
                             </table>
+
                         </div>
                     </div>
-                    <!-- modal create product -->
-                    <div class='modal fade' id='productStatic' data-bs-backdrop='static' data-bs-keyboard='false' tabindex='-1' aria-labelledby='staticBackdropLabel' aria-hidden='true'>
-                        <div class='modal-dialog'>
-                            <div class='modal-content'>
-                                <div class='modal-header bg-light-subtle'>
-                                    <h5 class='modal-title' id='staticBackdropLabel'>Create new Product</h5>
-                                    <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
-                                </div>
-                                <div class='modal-body'>
-                                    <form id="product" action="<?= BASE_URL ?>admin/manage-products.php" method="post" enctype="multipart/form-data">
-                                        <div class="row px-2 mb-1">
-                                            <label for="product-name" class="form-label">Product Name:</label>
-                                            <input type="text" class="form-control" id="product-name" name="product_name" placeholder="Enter product name here" required>
-
-                                            <label for="product-code" class="form-label">Product Code:</label>
-                                            <input type="text" class="form-control" id="product-code" name="product_code" placeholder="Enter product code here" required>
-
-                                            <label for="product-price" class="form-label">Product Price:</label>
-                                            <input type="text" class="form-control" id="product-price" name="product_price" placeholder="Enter product price here" required>
-
-                                            <label for="product-image" class="form-label">Product Image:</label>
-                                            <input type="file" class="form-control" id="product-image" name="product_image" required>
-                                        </div>
-                                        <input type="hidden" name="token" value="<?= $token ?>">
-                                    </form>
-
-                                </div>
-                                <div class='modal-footer bg-light-subtle'>
-                                    <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Close</button>
-                                    <button type='submit' form="product" name="product" value="1" class='btn btn-danger'>Create Product</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <!-- modal delete -->
-                    <div class='modal fade' id='static' data-bs-backdrop='static' data-bs-keyboard='false' tabindex='-1' aria-labelledby='staticBackdropLabel' aria-hidden='true'>
-                        <div class='modal-dialog'>
-                            <div class='modal-content'>
-                                <div class='modal-header bg-light-subtle'>
-                                    <h5 class='modal-title' id='staticBackdropLabel'>Delete user?</h5>
-                                    <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
-                                </div>
-                                <div class='modal-body bg-danger-subtle'>
-                                    <div class="px-3">
-                                        <div class="mb-1">
-                                            <span class="fw-bolder">Warning</span>
-                                        </div>
-                                        <span class="text-black mt-3">This action cannot be reversed!<br>Proceed with caution.</span>
-                                    </div>
-
-                                </div>
-                                <div class='modal-footer bg-light-subtle'>
-                                    <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Close</button>
-                                    <button type='submit' id="modal-btn-delete" form="" name="delete" value="1" class='btn btn-danger'>I understand</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
 
                 </div>
             </div>
-
-
-
 
             <?php footer(); ?>
         </main>
@@ -237,7 +245,214 @@ $token = getToken();
     </div>
 </div>
 <?php body_script_tag_content();?>
-<script type="text/javascript" src="<?= BASE_URL ?>assets/js/modal.js"></script>
+<script>
+    $(document).ready(function () {
+        const token = '<?= $_SESSION["token"]; ?>';
+
+        $('.add-product').on('click', function () {
+            //dumber way of doing things, but easier
+            let formHTML = `<form id="form" action="<?= BASE_URL ?>admin/manage-products.php" method="post" enctype="multipart/form-data">
+    <div class="row g-3 p-3 border rounded">
+        <div class="col-12">
+            <label for="product-name" class="form-label">Product Name:</label>
+            <input type="text" class="form-control" id="product-name" name="product_name" placeholder="Enter product name here" required>
+        </div>
+        <div class="col-12">
+            <label for="product-desc" class="form-label">Product Description:</label>
+            <textarea class="form-control" id="product-desc" name="product_desc" rows="3" placeholder="Enter description here" required></textarea>
+        </div>
+        <div class="col-md-6">
+            <label for="product-price" class="form-label">Product Price:</label>
+            <input type="text" class="form-control" id="product-price" name="product_price" placeholder="Enter product price here" required>
+        </div>
+        <div class="col-md-6">
+            <label for="inventory-quantity" class="form-label">Inventory Quantity:</label>
+            <input type="number" class="form-control" id="inventory-quantity" name="inventory_quantity" required>
+        </div>
+        <div class="col-12">
+            <label for="product-image" class="form-label">Product Image:</label>
+            <input type="file" class="form-control" id="product-image" name="product_image" required>
+        </div>
+    </div>
+</form>`;
+
+            bootbox.dialog({
+                title: "Create Product",
+                message: formHTML,
+                size: "large",
+                buttons: {
+                    cancel: {
+                        label: "Cancel",
+                        className: "btn-secondary"
+                    },
+                    save: {
+                        label: "Create",
+                        className: "btn-primary",
+                        callback: function () {
+                            const form = $('#form');
+
+                            form.append($("<input>", {
+                                type: "hidden",
+                                name: "create",
+                                value: true
+                            }));
+
+                            form.append($("<input>", {
+                                type: "hidden",
+                                name: "token",
+                                value: token
+                            }));
+
+                            form.submit();
+                        }
+                    }
+                }
+            });
+        });
+
+        $('.edit-product').on('click', function () {
+            const productId = $(this).data('product-id');
+            const productName = $(this).data('product-name');
+            const productPrice = $(this).data('product-price');
+            const productImage = $(this).data('product-image');
+            const productDesc = $(this).data('product-desc');
+            const inventoryQuantity = $(this).data('inventory-quantity');
+
+            let formHTML = `<form id="form" action="<?= BASE_URL ?>admin/manage-products.php" method="post" enctype="multipart/form-data">
+    <div class="row g-3 p-3 border rounded">
+        <!-- Product Image Preview -->
+        <div class="col-12 text-center mb-3">
+            <img src="${productImage}" class="img-thumbnail" style="max-width: 150px; height: auto;" alt="Product Image">
+        </div>
+
+        <!-- Product ID (Readonly) -->
+        <div class="col-12">
+            <label for="product-id" class="form-label">Product ID:</label>
+            <input type="text" class="form-control" id="product-id" name="product_id" value="${productId}" readonly>
+        </div>
+
+        <!-- Product Name -->
+        <div class="col-12">
+            <label for="product-name" class="form-label">Product Name:</label>
+            <input type="text" class="form-control" id="product-name" name="product_name" value="${productName}" placeholder="Enter product name here" required>
+        </div>
+
+        <!-- Product Description -->
+        <div class="col-12">
+            <label for="product-desc" class="form-label">Product Description:</label>
+            <textarea class="form-control" id="product-desc" name="product_desc" rows="3" placeholder="Enter description here" required>${productDesc}</textarea>
+        </div>
+
+        <!-- Product Price -->
+        <div class="col-md-6">
+            <label for="product-price" class="form-label">Product Price:</label>
+            <input type="text" class="form-control" id="product-price" name="product_price" value="${productPrice}" placeholder="Enter product price here" required>
+        </div>
+
+        <!-- Inventory Quantity -->
+        <div class="col-md-6">
+            <label for="inventory-quantity" class="form-label">Inventory Quantity:</label>
+            <input type="number" class="form-control" id="inventory-quantity" name="inventory_quantity" value="${inventoryQuantity}" required>
+        </div>
+
+        <!-- Product Image Upload -->
+        <div class="col-12">
+            <label for="product-image" class="form-label">Product Image:</label>
+            <input type="file" class="form-control" id="product-image" name="product_image">
+        </div>
+    </div>
+</form>
+`;
+
+            bootbox.dialog({
+                title: "Edit Product",
+                message: formHTML,
+                size: "large",
+                buttons: {
+                    cancel: {
+                        label: "Cancel",
+                        className: "btn-secondary"
+                    },
+                    save: {
+                        label: "Update",
+                        className: "btn-primary",
+                        callback: function () {
+                            const form = $('#form');
+
+                            form.append($("<input>", {
+                                type: "hidden",
+                                name: "update",
+                                value: true
+                            }));
+
+                            form.append($("<input>", {
+                                type: "hidden",
+                                name: "token",
+                                value: token
+                            }));
+
+                            form.append($("<input>", {
+                                type: "hidden",
+                                name: "product_image_original",
+                                value: productImage
+                            }));
+
+                            form.submit();
+                        }
+                    }
+                }
+            });
+        });
+
+        $('.delete-product').on('click', function () {
+            const productId = $(this).data('product-id');
+
+            bootbox.confirm({
+                title: "Confirm Deletion",
+                message: "Are you sure you want to delete this product? This action cannot be undone.",
+                buttons: {
+                    confirm: {
+                        label: "Yes, Delete",
+                        className: "btn-danger"
+                    },
+                    cancel: {
+                        label: "Cancel",
+                        className: "btn-secondary"
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        const form = $('<form>', {
+                            action: '<?= BASE_URL ?>admin/manage-products.php',
+                            method: 'POST'
+                        });
+
+                        form.append($('<input>', {
+                            type: 'hidden',
+                            name: 'product_id',
+                            value: productId
+                        }));
+
+                        form.append($('<input>', {
+                            type: 'hidden',
+                            name: 'token',
+                            value: token
+                        }));
+
+                        form.append($('<input>', {
+                            type: 'hidden',
+                            name: 'delete',
+                            value: true
+                        }));
+
+                        $('body').append(form);
+                        form.submit();
+                    }
+                }
+            });
+        });
+    });
+</script>
 </body>
 
 </html>

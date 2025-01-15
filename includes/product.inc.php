@@ -138,9 +138,9 @@ function deleteProduct($productID) {
 
 //TODO: New schema, this code is no longer applicable. Will need changing soon! Product code does not exist
 // Inventory Quantity needed too
-function createProduct($productName, $productImage, $productPrice) {
-    $sql = "INSERT INTO products(PRODUCT_ID, PRODUCT_NAME, product_image, product_price) 
-            VALUES (PRODUCT_SEQ.nextval, :product_name, :product_image, :product_price)";
+function createProduct($productName, $productImage, $productPrice, $inventoryQuantity, $productDescription) {
+    $sql = "INSERT INTO products(PRODUCT_ID, PRODUCT_NAME, product_image, product_price, INVENTORY_QUANTITY, PRODUCT_DESCRIPTION) 
+            VALUES (PRODUCT_SEQ.nextval, :product_name, :product_image, :product_price, :inventory_quantity, :product_description)";
     $conn = OpenConn();
 
     try {
@@ -148,6 +148,8 @@ function createProduct($productName, $productImage, $productPrice) {
         oci_bind_by_name($stmt, ':product_name', $productName);
         oci_bind_by_name($stmt, ':product_image', $productImage);
         oci_bind_by_name($stmt, ':product_price', $productPrice);
+        oci_bind_by_name($stmt, ':inventory_quantity', $inventoryQuantity);
+        oci_bind_by_name($stmt, ':product_description', $productDescription);
 
         if (!oci_execute($stmt)) {
             throw new Exception(oci_error($stmt)['message']);
@@ -164,7 +166,7 @@ function createProduct($productName, $productImage, $productPrice) {
             oci_free_statement($stmt);
         }
         CloseConn($conn);
-        die("Error: unable to create product!");
+        return false;
     }
 }
 
@@ -208,3 +210,40 @@ function retrieveAllProductLike($query) {
 }
 
 //TODO: Update product
+function updateProduct($productId, $productName, $productImage, $productPrice, $inventoryQuantity, $productDescription) {
+    $sql = "UPDATE products
+        SET PRODUCT_NAME = :product_name,
+            product_image = :product_image,
+            product_price = :product_price,
+            INVENTORY_QUANTITY = :inventory_quantity,
+            PRODUCT_DESCRIPTION = :product_description
+        WHERE PRODUCT_ID = :product_id";
+    $conn = OpenConn();
+
+    try {
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ':product_name', $productName);
+        oci_bind_by_name($stmt, ':product_image', $productImage);
+        oci_bind_by_name($stmt, ':product_price', $productPrice);
+        oci_bind_by_name($stmt, ':inventory_quantity', $inventoryQuantity);
+        oci_bind_by_name($stmt, ':product_description', $productDescription);
+        oci_bind_by_name($stmt, ':product_id', $productId);
+
+        if (!oci_execute($stmt)) {
+            throw new Exception(oci_error($stmt)['message']);
+        }
+
+        oci_free_statement($stmt);
+        CloseConn($conn);
+
+        return true;
+    }
+    catch (Exception $e) {
+        createLog($e->getMessage());
+        if (isset($stmt)) {
+            oci_free_statement($stmt);
+        }
+        CloseConn($conn);
+        return false;
+    }
+}

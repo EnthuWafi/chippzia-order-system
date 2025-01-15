@@ -662,7 +662,7 @@ function deleteEmployees($employeeID) {
             oci_free_statement($stmt);
         }
         CloseConn($conn);
-        die("Error: unable to delete employee!");
+        return false;
     }
 }
 
