@@ -30,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
                 $totalCost = $cost + 5;
                 //process
-                $order = createOrderMember($totalCost, $customerID, $cart);
+                $order = createOrderCustomer($totalCost, $customerID, $cart);
 
                 if (isset($order)) {
                     makeToast("success", "Your order has been placed!", "Success");

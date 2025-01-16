@@ -309,15 +309,14 @@ function orders_adminOrders($orders) {
                 <span class='{$statusSmall}'>{$order["ORDER_STATUS"]}</span>
             </div>
             <div class='col'>
-               <form method='post' id='{$order["ORDER_ID"]}' action='{$base_url}admin/manage-orders.php'>
+               <form method='post' id='update_status_{$order["ORDER_ID"]}' action='{$base_url}admin/manage-orders.php'>
                <div class='row offset-1'>
                     <div class='col'>
-                        <input type='hidden' name='order_id' value='{$order["ORDER_ID"]}'>
                         <select name='status' class='form-select'>$statusOptions</select>      
                     </div>
                     <div class='col'>
-                        <input type='hidden' name='token' value='{$_SESSION["token"]}'>
-                        <a type='button' data-bs-toggle='modal' data-bs-target='#updateStatic' onclick='updateModal({$order["ORDER_ID"]}, \"modal-btn-update\");' class='btn btn-outline-primary'>
+                        <a type='button' class='btn btn-outline-primary edit-order' 
+                        data-order-id='{$order["ORDER_ID"]}'>
                         Update</a>
                     </div>
                 </div>
@@ -325,12 +324,8 @@ function orders_adminOrders($orders) {
                           
             </div>
             <div class='col-1 mt-2'>
-                <form action='/admin/manage-orders.php' id='{$order["ORDER_ID"]}' method='post'>
-                    <input type='hidden' name='order_id' value='{$order["ORDER_ID"]}'>
-                    <input type='hidden' name='token' value='{$_SESSION["token"]}'>
-                    <a type='button' data-bs-toggle='modal' data-bs-target='#deleteStatic' onclick='updateModal({$order["ORDER_ID"]}, \"modal-btn-delete\");' class='h4'>
-                    <i class='bi bi-trash'></i></a>
-                </form>    
+                <a type='button' class='h4 delete-order' data-order-id = '{$order["ORDER_ID"]}'>
+                <i class='bi bi-trash'></i></a>
             </div> 
         </div>      
     </div>

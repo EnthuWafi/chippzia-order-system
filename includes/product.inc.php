@@ -101,7 +101,7 @@ function retrieveProduct($productID) {
             oci_free_statement($stmt);
         }
         CloseConn($conn);
-        die("Error: unable to retrieve product!");
+        return null;
     }
 
     return null;

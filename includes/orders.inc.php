@@ -312,13 +312,17 @@ function retrieveAllOrderLines($orderID) {
 
 //TODO : Create Order Function Oracle (this one is MariaDB/MySQL)
 
-function createOrderMember($order_price, $customer_id, $cart, $loyalty_points=0) {
+function createOrderCustomer($total_price, $customer_id, $cart, $loyalty_points=0, $conn=null) {
     $sqlQueryFirst = "INSERT INTO orders(ORDER_ID, TOTAL_PRICE, CUSTOMER_ID, LOYALTY_POINTS_REDEEMED, ORDER_STATUS)
                     VALUES (:order_id, :total_price, :customer_id, :loyalty_points, 'PENDING')";
     $sqlQuerySecond = "INSERT INTO order_lines(order_line_id, order_id, product_id, quantity, price) 
                     VALUES (:order_line_id, :order_id, :product_id, :quantity, :price)";
+    $updateInventoryQuery = "UPDATE products SET INVENTORY_QUANTITY = INVENTORY_QUANTITY - :quantity 
+                             WHERE PRODUCT_ID = :product_id";
 
-    $conn = OpenConn();
+    if (!isset($conn)) {
+        $conn = OpenConn();
+    }
 
     try {
 
@@ -331,7 +335,7 @@ function createOrderMember($order_price, $customer_id, $cart, $loyalty_points=0)
         // Insert into orders table
         $stmt = oci_parse($conn, $sqlQueryFirst);
         oci_bind_by_name($stmt, ':order_id', $order_id);
-        oci_bind_by_name($stmt, ':order_price', $order_price);
+        oci_bind_by_name($stmt, ':total_price', $total_price);
         oci_bind_by_name($stmt, ':customer_id', $customer_id);
         oci_bind_by_name($stmt, ':loyalty_points', $loyalty_points);
 
@@ -341,6 +345,16 @@ function createOrderMember($order_price, $customer_id, $cart, $loyalty_points=0)
         foreach ($cart as $item) {
             $quantity = $item["quantity"];
             $product = $item["product"];
+
+            // Lock the product row using FOR UPDATE
+            $lockProductStmt = oci_parse($conn, "SELECT INVENTORY_QUANTITY FROM products WHERE PRODUCT_ID = :product_id FOR UPDATE");
+            oci_bind_by_name($lockProductStmt, ':product_id', $product['PRODUCT_ID']);
+            oci_execute($lockProductStmt);
+            $productRow = oci_fetch_assoc($lockProductStmt);
+
+            if ($productRow['INVENTORY_QUANTITY'] < $quantity) {
+                throw new Exception("Sorry. Insufficient inventory quantity for product ID {$product['PRODUCT_ID']}");
+            }
 
             // Generate new order line ID using ORDER_LINE_SEQ
             $order_line_id_stmt = oci_parse($conn, "SELECT ORDER_LINE_SEQ.NEXTVAL AS order_line_id FROM dual");
@@ -355,6 +369,12 @@ function createOrderMember($order_price, $customer_id, $cart, $loyalty_points=0)
             oci_bind_by_name($stmt, ':quantity', $quantity);
             oci_bind_by_name($stmt, ':price', $product['PRODUCT_PRICE']);
             oci_execute($stmt,OCI_NO_AUTO_COMMIT);
+
+            // Update product inventory
+            $updateStmt = oci_parse($conn, $updateInventoryQuery);
+            oci_bind_by_name($updateStmt, ':quantity', $quantity);
+            oci_bind_by_name($updateStmt, ':product_id', $product['PRODUCT_ID']);
+            oci_execute($updateStmt, OCI_NO_AUTO_COMMIT);
         }
 
         // Commit the transaction
@@ -365,52 +385,12 @@ function createOrderMember($order_price, $customer_id, $cart, $loyalty_points=0)
         // Rollback in case of error
         oci_rollback($conn);
         createLog($e->getMessage());
+        makeToast("error", $e->getMessage(), "Error");
         return null;
     } finally {
         CloseConn($conn);
     }
 
-}
-function createOrder($order_price, $user_id, $cart){
-    $sqlQueryFirst = "INSERT INTO orders(order_price, user_id) 
-            VALUES (?, ?)";
-    $sqlQueryFirstID = "SET @order_id = LAST_INSERT_ID()";
-
-    $sqlQuerySecond = "INSERT INTO order_lines(order_id, product_id, quantity)
-            VALUES (@order_id, ?, ?)";
-
-    $sqlQuerySelectID = "SELECT @order_id as 'order_id'";
-
-    $conn = OpenConn();
-
-    try {
-        $conn->execute_query($sqlQueryFirst, [$order_price, $user_id]);
-        $conn->query($sqlQueryFirstID);
-
-        foreach ($cart as $item){
-            $quantity = $item["quantity"];
-            $product = $item["product"];
-
-            $conn->execute_query($sqlQuerySecond, [$product["product_id"], $quantity]);
-        }
-
-        $result = $conn->execute_query($sqlQuerySelectID);
-        CloseConn($conn);
-
-        if (mysqli_num_rows($result) > 0) {
-            return mysqli_fetch_assoc($result);
-        }
-    }
-    catch (mysqli_sql_exception){
-        createLog($conn->error);
-        $result = $conn->execute_query($sqlQuerySelectID);
-        $id = mysqli_fetch_assoc($result)["order_id"];
-        deleteOrder($id);
-
-        die("Error: unable to create order!");
-    }
-
-    return null;
 }
 
 function deleteOrder($orderID){
@@ -442,7 +422,7 @@ function deleteOrder($orderID){
 
 // TODO: this function has to be updated to include the employee who updated the order
 // In accordance with the new database and all that jazz :shrug:
-function updateOrder($orderID, $orderStatus){
+function updateOrderStatus($orderID, $orderStatus){
     $sql= "UPDATE orders SET order_status = :order_status 
             WHERE order_id = :order_id";
     $conn = OpenConn();
