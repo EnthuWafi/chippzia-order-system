@@ -25,7 +25,7 @@ displayToast();
 
 <head>
     <?php head_tag_content(); ?>
-    <title>Kerepek Funz | Admin Dashboard</title>
+    <title><?= WEBSITE_NAME ?> | Admin Dashboard</title>
 </head>
 <body>
 <div class="container-fluid">
@@ -98,7 +98,7 @@ displayToast();
                                     <span class="fs-2"><?= $productBought; ?></span>
                                 </div>
                                 <div class="row">
-                                    <span class="text-muted">Products Sold</span>
+                                    <span class="text-muted">Items Sold</span>
                                 </div>
                             </div>
                             <div class="col text-end">

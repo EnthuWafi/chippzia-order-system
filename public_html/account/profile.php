@@ -16,12 +16,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
 
                 $contact = ["address"=>htmlspecialchars($_POST["address"]), "postcode"=>htmlspecialchars($_POST["postcode"]),
-                    "city"=>htmlspecialchars($_POST["city"]), "state_code"=>htmlspecialchars($_POST["state"]),
+                    "city"=>htmlspecialchars($_POST["city"]), "state"=>htmlspecialchars($_POST["state"]),
                     "phone"=>htmlspecialchars($_POST["phone"])];
                 $customerID = $_SESSION["user_data"]["CUSTOMER_ID"];
 
                 //TODO: Change this later
                 if (updateCustomerContact($customerID, $contact)){
+                    $usertype = $_SESSION["user_data"]["user_type"];
+
+                    $_SESSION["user_data"] = retrieveMember($customerID);
+                    $_SESSION["user_data"]["user_type"] = $usertype;
                     makeToast('success', "Contact info is successfully updated!", "Success");
                 }
                 else{
@@ -50,14 +54,13 @@ $user = retrieveMember($_SESSION["user_data"]["CUSTOMER_ID"]);
 //i will use api later
 $states = [
         [
-            "state_code" => "1",
             "state_name" => "Perak"
         ]
 ];
 $optionStates = "";
 
 foreach ($states as $state){
-    $optionStates .= "<option value='{$state["state_code"]}'>{$state["state_name"]}</option>";
+    $optionStates .= "<option value='{$state["state_name"]}'>{$state["state_name"]}</option>";
 }
 $token = getToken();
 ?>
@@ -132,6 +135,9 @@ $token = getToken();
                                 <div class="row">
                                     <span class="fw-bold">Email</span>
                                 </div>
+                                <div class="row">
+                                    <span class="fw-bold text-primary">Loyalty Points</span>
+                                </div>
                             </div>
                             <div class="col mt-2">
                                 <div class="row">
@@ -146,7 +152,9 @@ $token = getToken();
                                 <div class="row">
                                     <span class="fw-bold"><?= $user["EMAIL"]  ?? "-" ?></span>
                                 </div>
-
+                                <div class="row">
+                                    <span class="fw-bold text-primary"><?= $user["LOYALTY_POINTS"]  ?? "0" ?></span>
+                                </div>
                             </div>
                         </div>
                         <div class="shadow p-3 mt-4 mb-4 bg-body rounded row gx-3">

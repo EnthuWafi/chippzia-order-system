@@ -7,8 +7,8 @@ member_login_required();
 
 //check if all info are okay
 $user = $_SESSION["user_data"];
-if (!array_keys_isempty_or_not(["user_address", "user_postcode", "user_city",
-    "user_phone", "state_code"], $user)){
+if (!array_keys_isempty_or_not(["ADDRESS", "POSTCODE", "CITY",
+    "PHONE", "STATE"], $user)){
     makeToast("info", "You must fill in all the contact details before you are allowed to order!", "Info");
     header("Location: ".BASE_URL."account/profile.php");
     die();
@@ -22,18 +22,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 //TODO: Change the calculation later (include the option to use loyalty points)
                 $user = retrieveMember($_SESSION["user_data"]["CUSTOMER_ID"]);
                 $customerID = $user["CUSTOMER_ID"];
+                $availablePoints = $user["LOYALTY_POINTS"];
                 $cart = $_SESSION["cart"];
-                $cost = 0;
+                $totalCost = 0;
+
                 foreach ($cart as $item){
                     $quantity = $item["quantity"];
-                    $cost += $item["product"]["PRODUCT_PRICE"] * $quantity;
+                    $totalCost += $item["product"]["PRODUCT_PRICE"] * $quantity;
                 }
-                $totalCost = $cost + 5;
+
+                // Redeem points (1 point = RM0.01)
+                $pointsToRedeem = isset($_POST["points_to_redeem"]) ? intval(htmlspecialchars($_POST["points_to_redeem"])) : 0;
+
+                if ($pointsToRedeem > 0) {
+                    // Validate points input
+                    if ($pointsToRedeem > $availablePoints) {
+                        throw new Exception("You cannot redeem more points than you have!");
+                    }
+
+                    $maxRedeemable = floor($totalCost * 100); // Convert total cost to points equivalent (1 point = RM0.01)
+                    if ($pointsToRedeem > $maxRedeemable) {
+                        throw new Exception("You cannot redeem more points than the order total!");
+                    }
+
+                    // Deduct points from total cost
+                    $totalCost -= $pointsToRedeem * 0.01;
+                }
+
+                // Calculate points to reward (1 point = RM1 spent)
+                $pointsRewarded = floor($totalCost); // Round down to the nearest whole number
+                $newPoints = $availablePoints - $pointsToRedeem + $pointsRewarded;
+
+                $totalCost += 5; //shipping cost
+
                 //process
-                $order = createOrderCustomer($totalCost, $customerID, $cart);
+                $order = createOrderCustomer($totalCost, $customerID, $cart, $pointsToRedeem);
 
                 if (isset($order)) {
-                    makeToast("success", "Your order has been placed!", "Success");
+                    //update loyalty points
+                    updateMemberLoyaltyPoint($customerID, $newPoints);
+
+                    makeToast("success", "Your order has been placed! <br>" . $pointsToRedeem . " loyalty points has been redeemed!", "Success");
+
                     $_SESSION["ORDER_ID"] = $order["ORDER_ID"];
                 }
                 else {
@@ -61,7 +91,7 @@ displayToast();
 
 try{
     $cart = $_SESSION["cart"] or throw new Exception();
-} catch (Exception) {
+} catch (Exception $e) {
     makeToast("warning", "You cannot checkout with an empty cart!", "Warning");
     header("Location: ".BASE_URL."index.php");
     die();
@@ -144,7 +174,13 @@ $token = getToken();
                                                         <input type="text" id="cvv" name="cvv" placeholder="352" required>
                                                       </div>
                                                     </div>
-                                                    </div>
+                                                      <div class="row">
+                                                          <label for="points_to_redeem">Points to Redeem</label>
+                                                          <input type="number" name="points_to_redeem" id="points_to_redeem" min="0" max="<?= $user['LOYALTY_POINTS']; ?>" value="0">
+                                                          <small>You have <?= $user['LOYALTY_POINTS']; ?> loyalty points to redeem!</small>
+                                                      </div>
+                                                  </div>
+
                                                 </div>
                                               </form>
                                             </div>

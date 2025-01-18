@@ -16,9 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $subject = "Message from $name";
         $content = "<p>This message is from $name ($email)</p>
                     <p>$message</p>";
-        $body = "{$content}
-             <p>Sincerely,</p>
-             <p>Kerepek Funz Team</p>";
+        $body = "{$content}";
 
         sendMail("wafithird@gmail.com", $subject, $body) or throw new Exception("Message wasn't sent!");;
 
@@ -39,7 +37,7 @@ displayToast();
 <html lang="en">
 <head>
     <?php head_tag_content(); ?>
-    <title>Kerepek Funz | Contact Us</title>
+<title><?= WEBSITE_NAME ?> | Contact Us</title>
 </head>
 <body>
 <?php nav_menu(); ?>

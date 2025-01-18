@@ -8,48 +8,58 @@ member_login_required();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $postedToken = $_POST["token"];
-    if(!empty($postedToken)){
-        if(isTokenValid($postedToken)){
-            // Process form
-            if (isset($_POST["product_id"])){
-                $productID = htmlspecialchars($_POST["product_id"]);
-                $quantity = htmlspecialchars($_POST["quantity"]);
-                $cart = $_SESSION["cart"] ?? [];
-                $product = retrieveProduct($productID);
+    try {
+        if (!empty($postedToken)) {
+            if (isTokenValid($postedToken)) {
+                // Process form
+                if (isset($_POST["product_id"])) {
+                    $productID = htmlspecialchars($_POST["product_id"]);
+                    $quantity = htmlspecialchars($_POST["quantity"]);
+                    $cart = $_SESSION["cart"] ?? [];
+                    $product = retrieveProduct($productID);
 
-                //loop thru cart (see if duplicates exists)
-                $duplicateItem = null;
-                foreach ($cart as $itemKey => $itemValue){
-                    //match
-                    if ($itemValue["product"]["PRODUCT_ID"] == $product["PRODUCT_ID"]){
-                        $duplicateItem = $itemValue;
-                        unset($cart[$itemKey]);
-                        break;
-                    }
-                }
-
-                if (!is_numeric($quantity)){
-                    makeToast("error", "Quantity must be a number!", "Error");
-                }
-                else if ($quantity <= 0) {
-                    makeToast("error", "Quantity cannot be lower than zero!", "Error");
-                }
-                else{
-                    if (!empty($duplicateItem)){
-                        $quantity = $duplicateItem["quantity"] + $quantity;
+                    if (!$product) {
+                        throw new Exception("Invalid product");
                     }
 
-                    $array = ["product" => $product, "quantity" => $quantity];
-                    array_push($cart, $array);
+                    //loop thru cart (see if duplicates exists)
+                    $duplicateItem = null;
+                    foreach ($cart as $itemKey => $itemValue) {
+                        //match
+                        if ($itemValue["product"]["PRODUCT_ID"] == $product["PRODUCT_ID"]) {
+                            $duplicateItem = $itemValue;
+                            unset($cart[$itemKey]);
+                            break;
+                        }
+                    }
 
-                    $_SESSION["cart"] = $cart;
-                    makeToast("success", "Product added to Cart", "Success");
+                    if (!is_numeric($quantity)) {
+                        makeToast("error", "Quantity must be a number!", "Error");
+                    } else if ($quantity <= 0) {
+                        makeToast("error", "Quantity cannot be lower than zero!", "Error");
+                    } else {
+                        if (!empty($duplicateItem)) {
+                            $quantity = $duplicateItem["quantity"] + $quantity;
+                        }
+
+                        if ($quantity > $product["INVENTORY_QUANTITY"]) {
+                            throw new Exception( "Insufficient inventory! Only {$product['INVENTORY_QUANTITY']} items available.");
+                        }
+
+                        $array = ["product" => $product, "quantity" => $quantity];
+                        array_push($cart, $array);
+
+                        $_SESSION["cart"] = $cart;
+                        makeToast("success", "Product added to Cart", "Success");
+                    }
                 }
+            } else {
+                makeToast("warning", "Please refrain from attempting to resubmit previous form", "Warning");
             }
         }
-        else{
-            makeToast("warning", "Please refrain from attempting to resubmit previous form", "Warning");
-        }
+    }
+    catch (Exception $e) {
+        makeToast("error", $e->getMessage(), "Error");
     }
 
     header("Location: ".BASE_URL."account/shop.php");
@@ -96,12 +106,15 @@ displayToast();
                             </div>
                             <?php
                             $count = 0;
+                            $base_url = BASE_URL;
 
                             if ($products != null){
 
                                 foreach ($products as $product) {
                                     //price
                                     $productCost = number_format((float)$product["PRODUCT_PRICE"], 2, '.', '');
+
+                                    $totalLeft = !empty($product["INVENTORY_QUANTITY"]) ? "Total left: {$product["INVENTORY_QUANTITY"]}" : "Sold out!" ;
 
                                     if ($count % 4 == 0) {
                                         echo "<div class='row'>";
@@ -114,10 +127,12 @@ displayToast();
                                             <img src='{$product["PRODUCT_IMAGE"]}' class='card-img-top' alt='Product Image'>
                                               <div class='card-body h-100'>
                                                 <h5 class='card-title'>{$product["PRODUCT_NAME"]}</h5>
-                                                <p class='card-text'>Product Code: {$product["PRODUCT_ID"]}</p>
+                                                <p class='card-text'>Product Code: {$product["PRODUCT_ID"]}<br>
+                                                {$totalLeft}</p>
+                                                
                                                 <p class='card-text'>Price: RM{$productCost}</p>
            
-                                                <form action='/account/shop.php' method='post'>
+                                                <form action='{$base_url}account/shop.php' method='post'>
                                                     <div class='row gy-2'>
                                                         <input type='number' class='form-control' name='quantity' placeholder='Quantity' min='0' max=''>
                                                         <input type='hidden' name='product_id' value='{$product["PRODUCT_ID"]}'>

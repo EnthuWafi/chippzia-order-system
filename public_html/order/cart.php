@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    header("Location: /order/cart.php");
+    header("Location: ".BASE_URL."order/cart.php");
     die();
 }
 

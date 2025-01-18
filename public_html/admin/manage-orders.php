@@ -110,10 +110,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     }
 
                     //get customer id
-                    $customer_id_stmt = oci_parse($conn, "SELECT CUSTOMER_SEQ.CURRVAL AS CUSTOMER_ID FROM dual");
-                    oci_execute($customer_id_stmt);
-                    $row = oci_fetch_assoc($customer_id_stmt);
-                    $customer_id = $row['CUSTOMER_ID'];
+                    $customer_id = getCurrentCustomerId($conn);
 
                     //create a pseudo cart
                     $total_price = 0;
@@ -409,46 +406,48 @@ $token = getToken();
 
 
         $('.edit-order').on('click', function ()  {
-            const orderId = $(this).attr('order-id');
+            const orderId = $(this).data('order-id');;
 
-            bootbox.dialog({
-                title: "Edit Order Status",
-                message: formHTML,
-                size: "large",
+            bootbox.confirm({
+                title: "Confirm Update",
+                message: "Are you sure you want to update this order status? The user will be notified of the order.",
                 buttons: {
+                    confirm: {
+                        label: "Yes, update",
+                        className: "btn-danger"
+                    },
                     cancel: {
                         label: "Cancel",
                         className: "btn-secondary"
-                    },
-                    save: {
-                        label: "Update",
-                        className: "btn-primary",
-                        callback: function () {
-                            const form = $('#update_status_' + orderId);
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        const form = $('#update_status_' + orderId);
 
-                            form.append($("<input>", {
-                                type: "hidden",
-                                name: "update",
-                                value: true
-                            }));
+                        form.append($("<input>", {
+                            type: "hidden",
+                            name: "update",
+                            value: true
+                        }));
 
-                            form.append($("<input>", {
-                                type: "hidden",
-                                name: "order_id",
-                                value: orderId
-                            }));
+                        form.append($("<input>", {
+                            type: "hidden",
+                            name: "order_id",
+                            value: orderId
+                        }));
 
-                            form.append($("<input>", {
-                                type: "hidden",
-                                name: "token",
-                                value: token
-                            }));
+                        form.append($("<input>", {
+                            type: "hidden",
+                            name: "token",
+                            value: token
+                        }));
 
-                            form.submit();
-                        }
+                        form.submit();
                     }
                 }
             });
+
         });
 
         $('.delete-order').on('click', function () {

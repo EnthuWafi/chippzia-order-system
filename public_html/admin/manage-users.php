@@ -24,12 +24,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
                 else if (isset($_POST["delete_employee"])) {
                     $employeeID = htmlspecialchars($_POST["employee_id"]);
+                    $currentUserID = $_SESSION["user_data"]["EMPLOYEE_ID"]; // Assuming user_data contains the current user info
 
-                    //Check here
-                    // If current user == the employee being deleted, no
+                    // Check if current user == the employee being deleted
+                    if ($employeeID == $currentUserID) {
+                        throw new Exception("You cannot delete your own account!");
+                    }
 
+                    // Check if employee is the only super admin
+                    $employee = retrieveEmployee($employeeID);
+                    $countSuperAdmin = retrieveCountAuthorityLevel(1)["COUNT"];
 
-                    // If employee is the only super admin user, no
+                    if ($employee["AUTHORITY_LEVEL"] == 1
+                        && $countSuperAdmin == 1) {
+                        throw new Exception("Cannot delete the only super admin!");
+                    }
 
                     deleteEmployees($employeeID) or throw new Exception("Employee wasn't able to be deleted!");
                     makeToast("success", "Employee successfully deleted!", "Success");

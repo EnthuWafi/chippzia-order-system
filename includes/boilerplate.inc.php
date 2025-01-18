@@ -144,31 +144,31 @@ function side_bar() {
         <hr>
         <ul class='nav nav-pills flex-column mb-auto'>
             <li class='nav-item'>
-                <a href='/' class='nav-link link-dark'>
+                <a href='{$base_url}' class='nav-link link-dark'>
                     <i class='bi bi-house-door me-2 $iconSize'></i>
                     Home
                 </a>
             </li>
             <li>
-                <a href='/account/dashboard.php' class='nav-link link-dark'>
+                <a href='{$base_url}account/dashboard.php' class='nav-link link-dark'>
                     <i class='bi bi-speedometer2 me-2 $iconSize'></i>
                     Dashboard
                 </a>
             </li>
             <li>
-                <a href='/account/orders.php' class='nav-link link-dark'>
+                <a href='{$base_url}account/orders.php' class='nav-link link-dark'>
                     <i class='bi bi-basket2 me-2 $iconSize'></i>
                     Orders
                 </a>
             </li>
             <li>
-                <a href='/account/shop.php' class='nav-link link-dark'>
+                <a href='{$base_url}account/shop.php' class='nav-link link-dark'>
                     <i class='bi bi-cart me-2 $iconSize'></i>
                     Shop
                 </a>
             </li>
             <li>
-                <a href='/account/profile.php' class='nav-link link-dark'>
+                <a href='{$base_url}account/profile.php' class='nav-link link-dark'>
                     <i class='bi bi-people me-2 $iconSize'></i>
                     Profile
                 </a>
@@ -177,7 +177,7 @@ function side_bar() {
         <hr>
         <div class='dropdown'>
             <a href='#' class='d-flex align-items-center link-dark text-decoration-none dropdown-toggle' id='dropdownUser2' data-bs-toggle='dropdown' aria-expanded='false'>
-                <img src='/assets/images/default-profile.svg' alt='' width='32' height='32' class='rounded-circle me-2'>
+                <img src='{$base_url}assets/images/default-profile.svg' alt='' width='32' height='32' class='rounded-circle me-2'>
                 <strong>{$_SESSION["user_data"]["USERNAME"]}</strong>
             </a>
             <ul class='dropdown-menu text-small shadow' aria-labelledby='dropdownUser2'>
@@ -280,6 +280,7 @@ function admin_side_bar() {
 function footer(){
     $date = date("Y");
     $base_url = BASE_URL;
+    $website_name = WEBSITE_NAME;
 
     //svg shit
     echo '
@@ -363,7 +364,7 @@ function footer(){
             <div class='row d-flex flex-wrap justify-content-between'>
               <div class='col-lg-3 col-sm-6 pb-3'>
                 <div class='footer-menu'>
-                  <p>Kerepek FUNZ</p>
+                  <p>{$website_name}</p>
                   <p>MORE KEREPEK, MORE FUNZ!</p>
                   <div class='social-links'>
                     <ul class='d-flex list-unstyled'>
@@ -482,7 +483,7 @@ function footer(){
           </div>
           <div class='col-md-4 col-sm-6'>
             <div class='copyright'>
-              <p>© Copyright {$date} Kerepek FUNZ.</p>
+              <p>© Copyright {$date} {$website_name}.</p>
             </div>
           </div>
         </div>

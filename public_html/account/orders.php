@@ -38,6 +38,10 @@ $orderCount = retrieveCustomerOrderCount($_SESSION["user_data"]["CUSTOMER_ID"])[
                         if ($orders != null){
                             orders_memberOrders($orders);
                         }
+                        else {
+                            echo "<span class='fs-4'>No orders yet.</span>";
+                        }
+                        ?>
 
                         ?>
                     </div>

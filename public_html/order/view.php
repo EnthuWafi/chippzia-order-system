@@ -2,17 +2,34 @@
 session_start();
 require("../../includes/functions.inc.php");
 
-
-member_login_required();
+//only requires login
+if (!isset($_SESSION["user_data"])) {
+    header("Location: ".BASE_URL."./login.php");
+}
 
 displayToast();
-//cart no longer needed, unset it
-unset($_SESSION["cart"]);
 
-$user = $_SESSION["user_data"];
-$orderID = $_SESSION["ORDER_ID"];
+//literally the same thing as confirm.php, I know this is pretty inefficient but honestly
+// I couldn't give two shits
+
+$orderID = htmlspecialchars($_GET["orderId"]);
+
+if (!isset($orderID)) {
+    makeToast("warning", "No order specified!", "Warning");
+    header("Location: ".BASE_URL."account/dashboard.php");
+}
 
 $order = retrieveOrderSpecific($orderID);
+
+//for members, can only open their own orders
+// admin can seee all order
+if ($_SESSION["user_data"]["user_type"] == "member") {
+    if ($order["CUSTOMER_ID"] != $_SESSION["user_data"]["CUSTOMER_ID"]) {
+        makeToast("warning", "You are not authorized to view this order!", "Warning");
+        header("Location: ".BASE_URL."account/dashboard.php");
+    }
+}
+
 $totalCost = $order["TOTAL_PRICE"];
 $redeemedPoints = $order["LOYALTY_POINTS_REDEEMED"] ?? 0;
 $redeemedValue = $redeemedPoints * 0.01; // Calculate value of redeemed points
@@ -32,37 +49,41 @@ $total = number_format(($totalCost), 2, ".", ",");
 
 <head>
     <?php head_tag_content(); ?>
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/progress.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/invoice.css">
-    <title><?= WEBSITE_NAME ?> | Order Completed</title>
+    <title><?= WEBSITE_NAME ?> | Order View</title>
 </head>
 <body>
 <div class="container-fluid">
     <div class="row flex-nowrap">
         <div class="col-auto px-0">
-            <?php side_bar() ?>
+            <?php
+            if ($_SESSION["user_data"]["user_type"] == "member") {
+                side_bar();
+            }
+            else {
+                admin_side_bar();
+            }
+
+            ?>
         </div>
         <main class="col ps-md-2 pt-2">
-            <?php header_bar("Complete") ?>
+            <?php
+            if ($_SESSION["user_data"]["user_type"] == "member") {
+                header_bar("View My Order");
+            }
+            else {
+                admin_header_bar("View Order");
+            }
+             ?>
 
             <!-- todo DASHBOARD here  -->
             <div class="container mt-3">
                 <div class="row justify-content-center">
                     <div class="col-lg-12 me-3 mt-3 mb-5">
-                        <div class="row ms-4">
-                            <h2><strong>Thanks for shopping with <?= WEBSITE_NAME ?></strong></h2>
-                            <p>We hope you'll order again from us!</p>
-                        </div>
 
                         <div class="row">
                             <div class="col-md-12 mx-0">
                                 <div id="msform">
-                                    <!-- progressbar -->
-                                    <ul id="progressbar">
-                                        <li class="active"><strong>Cart</strong></li>
-                                        <li class="active"><strong>Checkout</strong></li>
-                                        <li class="active"><strong>Finish</strong></li>
-                                    </ul>
                                     <!--  invoice-->
                                     <div class="invoice-box bg-white" id="invoice">
                                         <table>
@@ -95,9 +116,9 @@ $total = number_format(($totalCost), 2, ".", ",");
                                                             </td>
 
                                                             <td>
-                                                                <?= ($user["FIRST_NAME"] . " " . $user["LAST_NAME"]) ?><br />
-                                                                <?= $user["EMAIL"] ?><br />
-                                                                <?= $user["PHONE"] ?? "-" ?>
+                                                                <?= ($order["FIRST_NAME"] . " " . $order["LAST_NAME"]) ?><br />
+                                                                <?= $order["EMAIL"] ?? "-" ?><br />
+                                                                <?= $order["PHONE"] ?? "-" ?>
                                                             </td>
                                                         </tr>
                                                     </table>

@@ -30,27 +30,30 @@ function current_page(): void
 function isHierarchyValid($employeeId, $managerId) {
     $conn = OpenConn();
 
-    $currentManagerId = $managerId;
+    try {
+        $currentManagerId = $managerId;
 
-    while ($currentManagerId) {
-        if ($currentManagerId == $employeeId) {
-            return false; // Circular reference found
+        $loopLimit = 100;
+        $loopCount = 0;
+
+        while ($currentManagerId) {
+            // Circular reference detected
+            if ($currentManagerId == $employeeId) {
+                CloseConn($conn);
+                return false;
+            }
+
+            $currentManagerId = getCurrentManagerId($currentManagerId, $conn);
+
+            $loopCount++;
+            if ($loopCount > $loopLimit) {
+                throw new Exception("Hierarchy check exceeded safe limit. Possible circular reference.");
+            }
         }
-
-        $sql = "SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_ID = :managerId";
-        $stmt = oci_parse($conn, $sql);
-        oci_bind_by_name($stmt, ":managerId", $currentManagerId);
-
-        if (!oci_execute($stmt)) {
-            oci_free_statement($stmt);
-            CloseConn($conn);
-            return false;
-        }
-
-        $result = oci_fetch_assoc($stmt);
-        $currentManagerId = $result['MANAGER_ID'] ?? null;
-
-        oci_free_statement($stmt);
+    } catch (Exception $e) {
+        createLog($e->getMessage());
+        CloseConn($conn);
+        return false;
     }
 
     CloseConn($conn);
@@ -136,6 +139,7 @@ function employee_forbidden(): void
 {
     if (isset($_SESSION["user_data"])){
         if (returnUserType() === "employee"){
+//            makeToast("warning", "You are forbidden from going to that page", "Warning");
             header("Location: ". BASE_URL . "admin/dashboard.php");
             die();
         }
@@ -145,7 +149,7 @@ function member_forbidden(): void
 {
     if (isset($_SESSION["user_data"])){
         if (returnUserType() === "member"){
-            makeToast("warning", "You are forbidden from going to that page", "Warning");
+//            makeToast("warning", "You are forbidden from going to that page", "Warning");
             header("Location: ". BASE_URL . "account/dashboard.php");
             die();
         }
@@ -214,6 +218,7 @@ function orders_memberOrders($orders){
         $orderLineStr = "";
         foreach ($orderLines as $orderLine) {
             $price = number_format((float)$orderLine["PRICE"], 2, ".", ",");
+            $total = number_format($orderLine["PRICE"]*$orderLine["QUANTITY"], 2, ".", ",");
 
             $orderLineStr .=
                 "<tr class='align-middle'>
@@ -223,18 +228,23 @@ function orders_memberOrders($orders){
 <td class='text-center'>{$orderLine["QUANTITY"]}</td>
 <td>$dateFormatted</td>
 <td>RM{$price}</td>
+<td>RM{$total}</td>
                                     </tr>";
             $count++;
         }
 
 
         //code
+        $link = BASE_URL."order/view.php?orderId=".$order["ORDER_ID"];
         $orderCode = sprintf('%08d', $order["ORDER_ID"]);
         $total = number_format((float)$order["TOTAL_PRICE"], 2, ".", ",");
         $statusSmall = strtolower($order["ORDER_STATUS"]);
         echo "
-<div class='row mt-3'>
-    <div class='col'><span class='h4'>Order #{$orderCode}</span></div>
+<div class='row mt-3 mb-2'>
+    <div class='col'><span class='h4'>Order #{$orderCode}</span></div> 
+    <div class='col'>
+        <a class='btn btn-outline-primary btn-sm' href='{$link}'>View</a>
+    </div>
     <div class='col text-end'>
         <span class='{$statusSmall}'>{$order["ORDER_STATUS"]}</span>
     </div>
@@ -250,13 +260,14 @@ function orders_memberOrders($orders){
             <th scope='col'>Quantity</th>
             <th scope='col'>Date Ordered</th>
             <th scope='col'>Price</th>
+            <th scope='col'>Total</th>
         </tr>
     </thead>
     <tbody>
         {$orderLineStr}
     </tbody>
     <tfoot>
-    <td colspan='5'><span class='fw-bold'>Total:</span></td>
+    <td colspan='6'><span class='fw-bold'>Total:</span></td>
     <td>RM{$total}</td>
     </tfoot>
     </table>
@@ -294,6 +305,7 @@ function orders_adminOrders($orders) {
                 $count++;
             }
             //code
+            $link = BASE_URL."order/view.php?orderId=".$order["ORDER_ID"];
             $orderCode = sprintf('%08d', $order["ORDER_ID"]);
             $total = number_format((float)$order["TOTAL_PRICE"], 2, ".", ",");
             $statusSmall = strtolower($order["ORDER_STATUS"]);
@@ -320,13 +332,13 @@ function orders_adminOrders($orders) {
                         Update</a>
                     </div>
                 </div>
-                </form>  
-                          
+                </form>       
             </div>
             <div class='col-1 mt-2'>
                 <a type='button' class='h4 delete-order' data-order-id = '{$order["ORDER_ID"]}'>
                 <i class='bi bi-trash'></i></a>
             </div> 
+            
         </div>      
     </div>
 </div>
@@ -348,13 +360,18 @@ function orders_adminOrders($orders) {
         {$orderLineStr}
     </tbody>
     <tfoot>
-    <td colspan='5'><span class='fw-bold'>Total:</span></td>
-    <td>RM{$total}</td>
+    <tr>
+        <td colspan='5'><span class='fw-bold'>Total:</span></td>
+        <td>RM{$total}</td>
+    </tr>
+    <tr class='text-end'>
+        <td colspan='6'><a class='btn btn-outline-primary' href='{$link}'>View</a></td>
+    </tr>
     </tfoot>
     </table>
 </div>
 </div>
-
+       
 ";
         }
     }
@@ -377,7 +394,7 @@ function orders_adminOrdersLite($orders) {
             echo "
 <div class='row mt-3 mb-1'>
     <div class='col-5'>
-        <span class='h4'>Order #{$orderCode}</span><span class='text-muted h4'> by {$order["username"]}</span>
+        <span class='h4'>Order #{$orderCode}</span><span class='text-muted h4'> by {$order["FIRST_NAME"]} {$order["LAST_NAME"]}</span>
     </div>
     <div class='col'>
         <div class='row'>

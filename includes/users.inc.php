@@ -310,12 +310,8 @@ function retrieveMember($customerID) {
             oci_free_statement($stmt);
         }
         CloseConn($conn);
-
-        die("Error: unable to retrieve member!");
     }
-    makeToast("error", "Member doesn't exist or was removed!", "Error");
-    header("Location: /logout.php");
-    die();
+    return null;
 }
 function retrieveEmployee($employeeID) {
     $sql = "SELECT *
@@ -347,17 +343,14 @@ function retrieveEmployee($employeeID) {
             oci_free_statement($stmt);
         }
         CloseConn($conn);
-
-        die("Error: unable to retrieve employee!");
     }
-    makeToast("error", "Employee doesn't exist or was removed!", "Error");
-    header("Location: /logout.php");
-    die();
+    return null;
 }
 
 function updateCustomerContact($customerID, $contact){
-    $sql = "UPDATE CUSTOMERS SET address = :address, CITY = :city, state = :state, PHONE = :phone, POSTCODE = :postcode
-            WHERE customer_id = ?";
+    $sql = "UPDATE CUSTOMERS 
+            SET address = :address, CITY = :city, state = :state, PHONE = :phone, POSTCODE = :postcode
+            WHERE customer_id = :customerID";
 
     $conn = OpenConn();
     try{
@@ -489,9 +482,7 @@ function retrieveCountEmployees() {
 }
 
 function retrieveAllEmployees() {
-    $sql = "SELECT
-                *
-            FROM EMPLOYEES";
+    $sql = "SELECT * FROM EMPLOYEES";
     $conn = OpenConn();
 
     try {
@@ -758,283 +749,167 @@ function updateEmployee($employeeID, $fname, $lname, $email, $phone, $username, 
     }
 }
 
+//These functions are meant to be called by other functions ($conn is required)
+function getCurrentCustomerId($conn) {
+    $sql = "SELECT CUSTOMER_SEQ.CURRVAL AS CUSTOMER_ID FROM dual";
+
+    try {
+        $stmt = oci_parse($conn, $sql);
+
+        if (!oci_execute($stmt)) {
+            throw new Exception(oci_error($stmt)['message']);
+        }
+
+        $result = oci_fetch_assoc($stmt);
+
+        oci_free_statement($stmt);
+
+        if ($result) {
+            return $result['CUSTOMER_ID'];
+        }
+    } catch (Exception $e) {
+        createLog($e->getMessage());
+        if (isset($stmt)) {
+            oci_free_statement($stmt);
+        }
+    }
+
+    return null;
+}
+
+function getCurrentManagerId($managerID, $conn) {
+    $sql = "SELECT MANAGER_ID FROM EMPLOYEES WHERE EMPLOYEE_ID = :managerId";
+
+    try {
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ":managerId", $managerID);
+
+        if (!oci_execute($stmt)) {
+            throw new Exception(oci_error($stmt)['message']);
+        }
+
+        $result = oci_fetch_assoc($stmt);
+
+        oci_free_statement($stmt);
+
+        if ($result) {
+            return $result['MANAGER_ID'];
+        }
+    } catch (Exception $e) {
+        createLog($e->getMessage());
+        if (isset($stmt)) {
+            oci_free_statement($stmt);
+        }
+    }
+
+    return null;
+}
+
+function getImmediateSubordinates($employeeId) {
+    $conn = OpenConn();
+
+    try {
+        $sql = "SELECT *
+                FROM EMPLOYEES
+                WHERE MANAGER_ID = :employeeId";
+
+        // Prepare and execute the statement
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ":employeeId", $employeeId);
+
+        if (!oci_execute($stmt)) {
+            throw new Exception(oci_error($stmt)['message']);
+        }
+
+        $result = [];
+        while ($row = oci_fetch_assoc($stmt)) {
+            $result[] = $row;
+        }
+
+        oci_free_statement($stmt);
+        CloseConn($conn);
+
+        if ($result) {
+            return $result;
+        }
+    } catch (Exception $e) {
+        createLog($e->getMessage());
+        if (isset($stmt)) {
+            oci_free_statement($stmt);
+        }
+        CloseConn($conn);
+        die("Error: cannot retrieve immediate subordinates!");
+    }
+    return null;
+}
+
+
+function updateMemberLoyaltyPoint($customerID, $loyaltyPoint) {
+    $sql = "UPDATE MEMBERS
+            SET LOYALTY_POINTS = :loyaltypoint
+            WHERE CUSTOMER_ID = :customerid";
+
+    $conn = OpenConn();
+    try{
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ':customerid', $customerID);
+        oci_bind_by_name($stmt, ':loyaltypoint', $loyaltyPoint);
+
+        if (!oci_execute($stmt)) {
+            throw new Exception(oci_error($stmt)['message']);
+        }
+
+        oci_free_statement($stmt);
+        CloseConn($conn);
+
+        return true;
+    }
+    catch (Exception $e) {
+        createLog($e->getMessage());
+        if (isset($stmt)) {
+            oci_free_statement($stmt);
+        }
+        CloseConn($conn);
+
+        makeToast("error", "Unable to update loyalty point!", "Error");
+        return false;
+    }
+}
+
+//authority level, 1: super admin, 2: admin, 3: employee
+function retrieveCountAuthorityLevel($authorityLevel) {
+    $sql = 'SELECT COUNT(EMPLOYEE_ID) AS "COUNT" FROM EMPLOYEES WHERE AUTHORITY_LEVEL=:authoritylevel';
+
+    $conn = OpenConn();
+
+    try{
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ':authoritylevel', $authorityLevel);
+
+        if (!oci_execute($stmt)) {
+            throw new Exception(oci_error($stmt)['message']);
+        }
+
+        $result = oci_fetch_assoc($stmt);
+
+        oci_free_statement($stmt);
+        CloseConn($conn);
+
+        if ($result) {
+            return $result;
+        }
+    }
+    catch (Exception $e) {
+        createLog($e->getMessage());
+        if (isset($stmt)) {
+            oci_free_statement($stmt);
+        }
+        CloseConn($conn);
+    }
+    return null;
+}
 
 /* Outdated functions below */
 
-// TODO: Warning. Highly outdated function, separate user function into two (employees and members)
-function createUser($fname, $lname, $username, $password, $email, $user_type) {
-    if (!($user_type == "customer" || $user_type == "admin")) {
-        die("Invalid user type");
-    }
-
-    $conn = OpenConn();
-    $sql = "INSERT INTO users(username, password, user_fname, user_lname, user_email, user_type) 
-            VALUES (?, ?, ?, ?, ?, ?)";
-
-    try {
-        if ($conn->execute_query($sql, [$username, password_hash($password, PASSWORD_DEFAULT), $fname, $lname,
-                                        $email, $user_type])){
-            CloseConn($conn);
-            return true;
-        }
-    }
-    catch (mysqli_sql_exception){
-        createLog($conn->error);
-        header("Location: /index.php");
-        die();
-    }
-
-    return false;
-}
-
-//verify user (return customer/admin)
-function verifyUser($username, $password) {
-    $sql = "SELECT us.* FROM users us WHERE us.username = ?";
-
-    $conn = OpenConn();
-
-    try{
-        $result = $conn->execute_query($sql, [$username]);
-        CloseConn($conn);
-
-        if (mysqli_num_rows($result) > 0) {
-            $row = mysqli_fetch_assoc($result);
-            //check password
-            if (password_verify($password, $row["password"])){
-                return $row;
-            }
-        }
-    }
-    catch (mysqli_sql_exception) {
-        createLog($conn->error);
-        die("Error: cannot get the user!");
-    }
-
-    return null;
-}
-
-function retrieveStates() {
-    $sql = "SELECT * FROM states";
-    $conn = OpenConn();
-
-    $result = $conn->execute_query($sql);
-    CloseConn($conn);
-
-    if (mysqli_num_rows($result) > 0) {
-        return mysqli_fetch_all($result, MYSQLI_ASSOC);
-    }
-    return null;
-}
-
-function retrieveUser($userID) {
-    $sql = "SELECT us.*, s.* FROM users us 
-            LEFT OUTER JOIN states s on us.state_code = s.state_code
-            WHERE us.user_id = ?";
-
-    $conn = OpenConn();
-
-    try{
-        $result = $conn->execute_query($sql, [$userID]);
-        CloseConn($conn);
-
-        if (mysqli_num_rows($result) > 0) {
-            return mysqli_fetch_assoc($result);
-        }
-    }
-    catch (mysqli_sql_exception) {
-        createLog($conn->error);
-        die("Error: cannot get the user!");
-    }
-
-    makeToast("error", "User doesn't exist or was removed!", "Error");
-    header("Location: /logout.php");
-    die();
-}
-
-function retrieveUserSimple($userID) {
-    $sql = "SELECT us.* FROM users us 
-            WHERE us.user_id = ?";
-
-    $conn = OpenConn();
-
-    try{
-        $result = $conn->execute_query($sql, [$userID]);
-        CloseConn($conn);
-
-        if (mysqli_num_rows($result) > 0) {
-            return mysqli_fetch_assoc($result);
-        }
-    }
-    catch (mysqli_sql_exception) {
-        createLog($conn->error);
-        die("Error: cannot get the user!");
-    }
-
-    makeToast("error", "User doesn't exist or was removed!", "Error");
-    header("Location: /logout.php");
-    die();
-}
-
-function updateContact($userID, $contact){
-    $sql = "UPDATE users SET user_address = ?, user_city = ?, user_postcode = ?, state_code = ?, user_phone = ?
-            WHERE user_id = ?";
-
-    $conn = OpenConn();
-    try{
-        $result = $conn->execute_query($sql, [$contact["address"], $contact["city"], $contact["postcode"],
-                                                $contact["state_code"], $contact["phone"], $userID]);
-        CloseConn($conn);
-
-        if ($result) {
-            return true;
-        }
-    }
-    catch (mysqli_sql_exception) {
-        createLog($conn->error);
-        die("Error: cannot update user contact!");
-    }
-
-    return false;
-}
-
-//admin
-function retrieveCountUsers() {
-    $sql = "SELECT COUNT(user_id) as 'count' FROM users";
-
-    $conn = OpenConn();
-
-    try{
-        $result = $conn->execute_query($sql);
-        CloseConn($conn);
-
-        if (mysqli_num_rows($result) > 0) {
-            return mysqli_fetch_assoc($result);
-        }
-    }
-    catch (mysqli_sql_exception) {
-        createLog($conn->error);
-        die("Error: cannot get the user count!");
-    }
-    return null;
-}
-function retrieveCountAdminUsers() {
-    $sql = "SELECT COUNT(user_id) as 'count' FROM users  WHERE user_type = 'admin'";
-
-    $conn = OpenConn();
-
-    try{
-        $result = $conn->execute_query($sql);
-        CloseConn($conn);
-
-        if (mysqli_num_rows($result) > 0) {
-            return mysqli_fetch_assoc($result);
-        }
-    }
-    catch (mysqli_sql_exception) {
-        createLog($conn->error);
-        die("Error: cannot get the user admin count!");
-    }
-    return null;
-}
-function retrieveCountCustomerUsers() {
-    $sql = "SELECT COUNT(user_id) as 'count' FROM users WHERE user_type = 'customer'";
-
-    $conn = OpenConn();
-
-    try{
-        $result = $conn->execute_query($sql);
-        CloseConn($conn);
-
-        if (mysqli_num_rows($result) > 0) {
-            return mysqli_fetch_assoc($result);
-        }
-    }
-    catch (mysqli_sql_exception) {
-        createLog($conn->error);
-        die("Error: cannot get the user customer count!");
-    }
-    return null;
-}
-function retrieveAllAdminUsers() {
-    $sql = "SELECT * FROM users WHERE user_type = 'admin'";
-
-    $conn = OpenConn();
-
-    try{
-        $result = $conn->execute_query($sql);
-        CloseConn($conn);
-
-        if (mysqli_num_rows($result) > 0) {
-            return mysqli_fetch_all($result, MYSQLI_ASSOC);
-        }
-    }
-    catch (mysqli_sql_exception) {
-        createLog($conn->error);
-        die("Error: cannot get the user admins!");
-    }
-    return null;
-}
-
-function retrieveAllCustomerUsers() {
-    $sql = "SELECT u.*, s.state_name FROM users u 
-         LEFT OUTER JOIN states s on u.state_code = s.state_code
-         WHERE user_type = 'customer'";
-
-    $conn = OpenConn();
-
-    try{
-        $result = $conn->execute_query($sql);
-        CloseConn($conn);
-
-        if (mysqli_num_rows($result) > 0) {
-            return mysqli_fetch_all($result, MYSQLI_ASSOC);
-        }
-    }
-    catch (mysqli_sql_exception) {
-        createLog($conn->error);
-        die("Error: cannot get the user customers!");
-    }
-    return null;
-}
-
-function deleteUser($userID) {
-    $sql = "DELETE FROM users WHERE user_id = ?";
-
-    $conn = OpenConn();
-
-    try{
-        $result = $conn->execute_query($sql, [$userID]);
-        CloseConn($conn);
-
-        if ($result) {
-            return true;
-        }
-    }
-    catch (mysqli_sql_exception) {
-        createLog($conn->error);
-        die("Error: cannot get the user customers!");
-    }
-    return false;
-}
-
-function retrieveAllUserLike($query) {
-    $sql = "SELECT * FROM users u WHERE u.user_fname LIKE ? OR u.user_lname LIKE ? OR u.username LIKE ?";
-    $query = "%{$query}%";
-
-    $conn = OpenConn();
-
-    try {
-        $result = $conn->execute_query($sql, [$query, $query, $query]);
-        CloseConn($conn);
-
-        if (mysqli_num_rows($result) > 0) {
-            return mysqli_fetch_all($result, MYSQLI_ASSOC);
-        }
-    }
-    catch (mysqli_sql_exception){
-        createLog($conn->error);
-        die("Error: unable to retrieve users like!");
-    }
-
-    return null;
-}
+// TODO: Warning. Highly outdated functions below, separate user function into two (employees and members)
+// They are gone now, I've destroyed them.

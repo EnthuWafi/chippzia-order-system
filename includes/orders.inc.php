@@ -92,7 +92,7 @@ function retrieveAllOrders() {
 }
 
 function retrieveAllOrders5LIMIT() {
-    $sql = "SELECT o.*
+    $sql = "SELECT o.*, c.*
             FROM ORDERS o
             INNER JOIN customers c on c.customer_id = o.customer_id
             WHERE rownum <= 5
@@ -380,7 +380,7 @@ function createOrderCustomer($total_price, $customer_id, $cart, $loyalty_points=
         // Commit the transaction
         oci_commit($conn);
 
-        return ["order_id" => $order_id];
+        return ["ORDER_ID" => $order_id];
     } catch (Exception $e) {
         // Rollback in case of error
         oci_rollback($conn);

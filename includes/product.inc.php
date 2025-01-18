@@ -101,7 +101,7 @@ function retrieveProduct($productID) {
             oci_free_statement($stmt);
         }
         CloseConn($conn);
-        return null;
+        makeToast("error", "Error while looking for product", "Error");
     }
 
     return null;
