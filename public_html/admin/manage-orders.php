@@ -15,8 +15,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if (isset($_POST["update"])) {
                     $orderID = htmlspecialchars($_POST["order_id"]);
                     $orderStatus = htmlspecialchars($_POST["status"]);
+                    $employeeID = $_SESSION["user_data"]["EMPLOYEE_ID"];
 
-                    updateOrderStatus($orderID, $orderStatus) or throw new Exception("Couldn't update transaction status");
+                    updateOrderStatusAndEmployeeID($orderID, $orderStatus, $employeeID) or throw new Exception("Couldn't update transaction status");
 
                     //notify user here via mail
                     require_once("../../mail.inc.php");
@@ -98,7 +99,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     //insert the customer
                     $first_name = htmlspecialchars($_POST["first_name"]);
                     $last_name = htmlspecialchars($_POST["last_name"]);
-                    $email = htmlspecialchars($_POST["email"]);
                     $phone = htmlspecialchars($_POST["phone"]);
                     $address = htmlspecialchars($_POST["address"]);
                     $postcode = htmlspecialchars($_POST["postcode"]);
@@ -142,12 +142,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         throw new Exception('Error: No valid products in the cart.');
                     }
 
+                    $shipping_cost = 5;
+                    $total_price += $shipping_cost;
+
                     // Pass in conn to make sure these two are using the same connection
                     //Loyalty points always zero if not a member
                     $order_result = createOrderCustomer($total_price, $customer_id, $cart, 0, $conn);
 
-                    if ($order_result) {
-                        makeToast("success", "Order created successfully! Order ID: " . $order_result['order_id'], "Success");
+                    if (isset($order_result)) {
+                        makeToast("success", "Order created successfully! Order ID: " . $order_result['ORDER_ID'], "Success");
                     } else {
                         throw new Exception("Failed to create order.");
                     }
@@ -266,10 +269,6 @@ $token = getToken();
                         <div class="col-md-6 mb-3">
                             <label for="last_name">Last Name</label>
                             <input type="text" class="form-control" name="last_name" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="email">Email</label>
-                            <input type="email" class="form-control" name="email" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="phone">Phone</label>

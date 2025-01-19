@@ -1,0 +1,68 @@
+
+/* Login Form */
+.login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.login-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    color: #CD853F;
+}
+.login-container input[type="text"],
+.login-container input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+.login-container button {
+    width: 100%;
+    padding: 10px;
+    background: #4682B4;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.login-container button:hover {
+    background: #B0E0E6;
+}
+.login-container .footer-links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+.login-container .footer-links a {
+    color: #4169E1;
+    text-decoration: none;
+}
+.login-container .footer-links a:hover {
+    text-decoration: underline;
+}
+.guest-access {
+    text-align: center;
+    margin-top: 15px;
+}
+.guest-access button {
+    background-color: #FF8C00;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 20px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.guest-access button:hover {
+    background-color: #F5DEB3;
+}

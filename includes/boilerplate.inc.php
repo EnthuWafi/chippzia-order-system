@@ -72,21 +72,21 @@ function nav_menu() {
                     </div>
                     <div class="offcanvas-body align-item-center">
                         <a href="<?= BASE_URL ?>">
-                            <img src="<?= BASE_URL ?>assets/images/logo2.png" width="50" height="50" >
+                            <img src="<?= BASE_URL ?>assets/images/logo2.png" width="70" height="70" >
                         </a>
 
                         <ul id="navbar" class="navbar-nav text-uppercase justify-content-end align-items-center flex-grow-1 pe-3">
                             <li class="nav-item">
-                                <a class="nav-link me-4 active" href="#billboard">Home</a>
+                                <a class="nav-link me-4 active" href="<?= BASE_URL ?>#billboard">Home</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link me-4" href="#company-services">Services</a>
+                                <a class="nav-link me-4" href="<?= BASE_URL ?>#company-services">Services</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link me-4" href="#mobile-products">Products</a>
+                                <a class="nav-link me-4" href="<?= BASE_URL ?>#mobile-products">Products</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link me-4" href="#yearly-sale">Sale</a>
+                                <a class="nav-link me-4" href="<?= BASE_URL ?>#yearly-sale">Sale</a>
                             </li>
                             <li class="nav-item">
                                 <div class="user-items ps-5">
@@ -94,7 +94,7 @@ function nav_menu() {
                                         <li class="pe-3">
                                             <?php
                                             if (isset($_SESSION['user_data'])) {
-                                                echo("Welcome, ".$_SESSION['user_data']['USERNAME']);
+                                                echo("<span class='small text-capitalize'>Hello, {$_SESSION['user_data']['USERNAME']}</span>");
                                             }
                                             ?>
                                         </li>
@@ -132,7 +132,7 @@ function side_bar() {
     <div class='d-flex flex-column flex-shrink-0 p-3 bg-light vh-100 sidebar mx-w-100'>
         <div class='row gx-3'>
             <div class='col-5'>
-                <a href='/' class='d-flex align-items-center me-md-auto link-dark text-decoration-none'>
+                <a href='{$base_url}' class='d-flex align-items-center me-md-auto link-dark text-decoration-none'>
                     <img class='me-2' width='150' height='73' src='{$base_url}assets/images/logo1.png'>
                 </a>
             </div>
@@ -448,9 +448,9 @@ function footer(){
               <div class='col-lg-3 col-sm-6 pb-3'>
                 <div class='footer-menu contact-item'>
                   <h5 class='widget-title text-uppercase pb-2'>Contact Us</h5>
-                  <p>Do you have any queries or suggestions? <a href='mailto:'>kerepekfunz5@gmail.com</a>
+                  <p>Do you have any queries or suggestions? <a href='mailto:'>chipzzia101@gmail.com</a>
                   </p>
-                  <p>If you need support? Just give us a call. <a href=''>+6011-115 62807</a>
+                  <p>If you need support? Just give us a call. <a href=''>+60 10 885 7639</a>
                   </p>
                 </div>
               </div>

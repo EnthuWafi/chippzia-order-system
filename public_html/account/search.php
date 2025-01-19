@@ -70,7 +70,7 @@ displayToast();
                                                 <td>{$product["PRODUCT_NAME"]}</td>
                                                 <td>RM{$price}</td>
                                                 <td class='text-center'>
-                                                    <a type='button' class='btn btn-outline-primary' href='{$base_url}account/shop.php/#{$product["product_id"]}'>
+                                                    <a type='button' class='btn btn-outline-primary' href='{$base_url}account/shop.php'>
                                                         See More
                                                     </a>                                       
                                                 </td>

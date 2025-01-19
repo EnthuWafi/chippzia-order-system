@@ -194,8 +194,11 @@ $token = getToken();
                                 <tbody>
                                 <?php
                                 $base_url = BASE_URL;
+
                                 if ($products != null) {
                                     foreach ($products as $product) {
+                                        $date = date_create($product["CREATED_AT"]);
+                                        $dateFormatted = date_format($date, "d M Y");
                                         $price = number_format((float)$product["PRODUCT_PRICE"], 2, ".", ",");
                                         echo "
                     <tr class='align-middle'>
@@ -205,7 +208,7 @@ $token = getToken();
                         <td>{$product["PRODUCT_DESCRIPTION"]}</td>
                         <td>RM{$price}</td>
                         <td>{$product["INVENTORY_QUANTITY"]}</td>
-                        <td>{$product["CREATED_AT"]}</td>
+                        <td>{$dateFormatted}</td>
                         <td class='text-center'>
                             <a type='button' class='h4 edit-product' 
                                data-product-id='{$product["PRODUCT_ID"]}' 

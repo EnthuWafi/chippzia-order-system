@@ -18,6 +18,8 @@ $incomeDecimal =  number_format((float)$income, 2, '.', '');
 
 $productBought = retrieveAllProductBought()["SUM"] ?? 0;
 $orders = retrieveAllOrders5LIMIT();
+
+$subordinates = getImmediateSubordinates($_SESSION["user_data"]["EMPLOYEE_ID"]);
 displayToast();
 ?>
 <!DOCTYPE html>
@@ -126,7 +128,6 @@ displayToast();
 
                 </div>
                 <div class="row mt-1 gx-4 ms-3">
-                    <!-- Maybe traffic and bookings here? todo -->
                     <div class="col">
                         <div class="shadow p-3 mb-5 bg-body rounded row gx-3">
                             <div class="row mb-3">
@@ -139,7 +140,47 @@ displayToast();
                             </div>
                         </div>
                     </div>
-                    <!-- Maybe traffic here? todo -->
+                </div>
+                <div class="row mt-1 gx-4 ms-3">
+
+                    <div class="shadow p-3 mb-5 bg-body rounded">
+                        <h4 class="mb-3">Subordinates</h4>
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th scope="col">Name</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Phone</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php if (!empty($subordinates)): ?>
+                                <?php foreach ($subordinates as $subordinate): ?>
+                                    <tr>
+                                        <td><?= $subordinate["FIRST_NAME"] . " " . $subordinate["LAST_NAME"] ?></td>
+                                        <td>
+                                            <a href="mailto:<?= $subordinate["EMAIL"] ?>" class="text-decoration-none">
+                                                <i class="bi bi-envelope me-2"></i><?= $subordinate["EMAIL"] ?>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a href="https://wa.me/<?= preg_replace('/\D/', '', $subordinate["PHONE"]) ?>"
+                                               class="text-decoration-none"
+                                               target="_blank">
+                                                <i class="bi bi-whatsapp me-2 text-success"></i>Chat on WhatsApp
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No subordinates assigned to this employee.</td>
+                                </tr>
+                            <?php endif; ?>
+
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 

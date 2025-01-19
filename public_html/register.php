@@ -62,61 +62,61 @@ $token = getToken();
 <html lang="en">
 <head>
     <?php head_tag_content(); ?>
-    <style>
-
-    </style>
-    <title>Login</title>
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/register.css">
+    <title><?= WEBSITE_NAME ?> - Member Registration </title>
 </head>
 <body>
 <?php nav_menu(); ?>
 <section id="billboard" class="position-relative overflow-hidden bg-body">
 </section>
-<div class="container-fluid my-5">
-    <div class="row overflow-x-auto">
-        <div class="container my-5">
-            <div class="row mt-5">
-                <div class="col-md-6 offset-md-3">
-                    <h2 class="text-center mb-4">Member Registration</h2>
-                    <form action="<?php current_page();?>" method="post">
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label for="fname" class="form-label">First Name:</label>
-                                <input type="text" class="form-control" id="fname" name="fname" placeholder="First Name"  required>
-                            </div>
-                            <div class="col">
-                                <label for="lname" class="form-label">Last name:</label>
-                                <input type="text" class="form-control" id="lname" name="lname" placeholder="Last Name"  required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password"  required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="confirm-password" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirm-password" placeholder="Confirm your password"  required>
-                            <h5 id="conpasscheck"></h5>
-                        </div>
-                        <div class="text-center">
-                            <input type="hidden" name="token" value="<?= $token?>">
-                            <button type="submit" class="btn btn-primary">Register</button>
-                        </div>
-                        <div class="text-center mt-2">
-                            <span>Already have an account? <a class="text-decoration-none" href="<?= BASE_URL ?>login.php">Login here!</a></span>
-                        </div>
-                    </form>
+<div class="container-fluid my-5 py-5">
+
+    <form action="<?php current_page(); ?>" id="form" method="post">
+        <div class="container">
+            <h1>Member Registration</h1>
+            <p>Register to our store and become a member today!</p>
+            <hr>
+
+            <!-- Input untuk First Name dan Last Name Sebelah-Sebelah -->
+            <div class="input-row">
+                <div>
+                    <label for="firstName"><b>First Name</b></label>
+                    <input type="text" placeholder="Enter Your First Name" name="fname" required>
+                </div>
+                <div>
+                    <label for="lastName"><b>Last Name</b></label>
+                    <input type="text" placeholder="Enter Your Last Name" name="lname" required>
                 </div>
             </div>
+
+            <label for="username"><b>Username</b></label>
+            <input type="text" placeholder="Enter Your Username" name="username" required>
+
+            <label for="email"><b>Email</b></label>
+            <input type="text" placeholder="Enter Your Email" name="email" required>
+
+            <label for="psw"><b>Password</b></label>
+            <div style="position: relative; width: 100%;">
+                <input type="password" placeholder name="psw" id="password" required>
+                <span class="toggle-password" onclick="togglePassword('password')">Show</span>
+            </div>
+
+            <label for="psw-repeat"><b>Repeat Password</b></label>
+            <div style="position: relative; width: 100%;">
+                <input type="password" placeholder name="psw-repeat" id="password-repeat" required>
+                <span class="toggle-password" onclick="togglePassword('password-repeat')">Show</span>
+            </div>
+
+            <label>
+                <input type="checkbox" checked="checked" name="remember"> Remember me
+            </label>
+
+            <div class="clearfix">
+                <button type="submit" class="signupbtn">Create Account</button>
+                <button type="button" class="cancelbtn" onclick="document.getElementById('form').reset();">Reset</button>
+            </div>
         </div>
-    </div>
+    </form>
     <?php footer(); ?>
 </div>
 <?php body_script_tag_content(); ?>

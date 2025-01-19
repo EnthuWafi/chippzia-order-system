@@ -14,6 +14,12 @@ if (!array_keys_isempty_or_not(["ADDRESS", "POSTCODE", "CITY",
     die();
 }
 
+if (!isset($_SESSION["cart"])) {
+    makeToast("warning", "You cannot checkout with an empty cart!", "Warning");
+    header("Location: ".BASE_URL."index.php");
+    die();
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $postedToken = $_POST["token"];
     try{
@@ -65,6 +71,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     makeToast("success", "Your order has been placed! <br>" . $pointsToRedeem . " loyalty points has been redeemed!", "Success");
 
                     $_SESSION["ORDER_ID"] = $order["ORDER_ID"];
+                    $_SESSION["loyaltyPointsReward"] = $pointsRewarded;
+
+                    header("Location: ".BASE_URL."order/confirm.php");
+                    die();
                 }
                 else {
                     throw new Exception("Something went terribly wrong during the ordering process!<br>Please contact the administrator!");
@@ -78,25 +88,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             throw new Exception("Token not found");
         }
     }
-    catch (exception $e){
+    catch (Exception $e){
         makeToast("error", $e->getMessage(), "Error");
     }
 
-    header("Location: ".BASE_URL."order/confirm.php");
+    header("Location: ".BASE_URL."order/checkout.php");
     die();
 }
 
 
 displayToast();
-
-try{
-    $cart = $_SESSION["cart"] or throw new Exception();
-} catch (Exception $e) {
-    makeToast("warning", "You cannot checkout with an empty cart!", "Warning");
-    header("Location: ".BASE_URL."index.php");
-    die();
-}
-
 
 $token = getToken();
 ?>

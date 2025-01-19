@@ -17,6 +17,7 @@ $orderID = htmlspecialchars($_GET["orderId"]);
 if (!isset($orderID)) {
     makeToast("warning", "No order specified!", "Warning");
     header("Location: ".BASE_URL."account/dashboard.php");
+    die();
 }
 
 $order = retrieveOrderSpecific($orderID);
@@ -27,6 +28,7 @@ if ($_SESSION["user_data"]["user_type"] == "member") {
     if ($order["CUSTOMER_ID"] != $_SESSION["user_data"]["CUSTOMER_ID"]) {
         makeToast("warning", "You are not authorized to view this order!", "Warning");
         header("Location: ".BASE_URL."account/dashboard.php");
+        die();
     }
 }
 

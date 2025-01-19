@@ -67,6 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $employee_id = htmlspecialchars($_POST["employee_id"]);
                     $lname = htmlspecialchars($_POST["lname"]);
                     $username = htmlspecialchars($_POST["username"]);
+                    $password = htmlspecialchars($_POST["password"]);
                     $phone = htmlspecialchars($_POST["phone"]);
                     $email = htmlspecialchars($_POST["email"]);
                     $authorityLevel = htmlspecialchars($_POST["authorityLevel"]);
@@ -82,7 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $managerID = null;
                     }
 
-                    updateEmployee($employee_id, $fname, $lname, $email, $phone, $username, $managerID, $authorityLevel)
+                    updateEmployee($employee_id, $fname, $lname, $email, $phone, $username, $password, $managerID, $authorityLevel)
                     or throw new Exception("Employee account wasn't able to be updated!");
 
                     makeToast("success", "Employee account successfully updated!", "Success");
@@ -154,11 +155,13 @@ $token = getToken();
                                 <table class="table table-hover">
                                     <thead>
                                     <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">Username</th>
-                                        <th scope="col">Full Name</th>
-                                        <th scope="col">Email</th>
-                                        <th scope="col">Registration</th>
+                                        <th scope="col" style="width: 5%;">#</th>
+                                        <th scope="col" style="width: 15%;">Username</th>
+                                        <th scope="col" style="width: 20%;">Full Name</th>
+                                        <th scope="col" style="width: 10%;">Email</th>
+                                        <th scope="col" style="width: 15%;">Phone</th>
+                                        <th scope="col" style="width: 20%;">Created</th>
+                                        <th scope="col" style="width: 10%;">Authority</th>
                                         <th scope="col" class="text-center col-1">Action</th>
                                     </tr>
                                     </thead>
@@ -267,6 +270,12 @@ $token = getToken();
                                     type: "text",
                                     value: "",
                                     placeholder: "Enter username"
+                                },
+                                password: {
+                                    label: "Password",
+                                    type: "password",
+                                    value: "",
+                                    placeholder: "Enter password"
                                 },
                                 email: {
                                     label: "Email",
@@ -400,6 +409,12 @@ $token = getToken();
                                     type: "text",
                                     value: username,
                                     placeholder: "Enter username"
+                                },
+                                password: {
+                                    label: "Password",
+                                    type: "password",
+                                    value: "",
+                                    placeholder: "Enter password"
                                 },
                                 email: {
                                     label: "Email",

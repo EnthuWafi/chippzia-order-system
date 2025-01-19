@@ -95,9 +95,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     die();
 }
 
-
-
-
 displayToast();
 $token = getToken();
 ?>
@@ -106,10 +103,8 @@ $token = getToken();
 <html lang="en">
 <head>
     <?php head_tag_content(); ?>
-    <style>
-
-    </style>
-    <title>Login</title>
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/login.css">
+    <title><?= WEBSITE_NAME ?> - Login</title>
 </head>
 <body>
 <?php nav_menu(); ?>
@@ -117,42 +112,34 @@ $token = getToken();
     </section>
     <div class="container-fluid">
         <div class="container my-5 py-5">
-            <form action="<?php current_page(); ?>" method="post">
-                <div class="row pt-5">
-                    <div class="col-md-6 offset-md-3">
 
-                        <input type="hidden" name="token" value="<?= $token ?>">
-                        <h2 class="text-center mb-4">Login</h2>
-                        <form>
-                            <div class="mb-3">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="usertype" id="usertype1" value="member" checked>
-                                    <label class="form-check-label" for="usertype1">Member</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="usertype" id="usertype2" value="employee">
-                                    <label class="form-check-label" for="usertype2">Employee</label>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username">
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password">
-                            </div>
-
-                            <div class="text-center">
-                                <input class="btn btn-primary" type="submit" value="Login" name="login"/>
-                            </div>
-                            <div class="text-center mt-2">
-                                <span>Not a member? <a class="text-decoration-none" href="<?= BASE_URL ?>register.php">Register now!</a></span>
-                            </div>
-                        </form>
+            <div class="login-container">
+                <h2>Login</h2>
+                <form action="<?php current_page(); ?>" method="POST">
+                    <div class="mb-3 d-flex justify-content-center">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="usertype" id="usertype1" value="member" checked>
+                            <label class="form-check-label" for="usertype1">Member</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="usertype" id="usertype2" value="employee">
+                            <label class="form-check-label" for="usertype2">Employee</label>
+                        </div>
                     </div>
+
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    <button type="submit" name="login">Login</button>
+                    <input type="hidden" name="token" value="<?= $token ?>">
+                </form>
+
+                <div class="footer-links">
+                    <a href="<?= BASE_URL ?>register.php">Not a member yet? Sign Up Now</a>
                 </div>
-            </form>
+            </div>
+
         </div>
         <?php footer(); ?>
     </div>

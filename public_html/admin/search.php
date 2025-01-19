@@ -10,13 +10,17 @@ if (isset($_GET["q"])){
     $query = htmlspecialchars($_GET["q"]);
 
     $products = retrieveAllProductLike($query);
-    $customers = retrieveAllCustomers();
+    $members = retrieveAllMembersLike($query);
+    $employees = retrieveAllEmployeeLike($query);
 }
 else {
     makeToast("Warning", "Query was not found!", "Warning");
     header("Location: ".BASE_URL."admin/dashboard.php");
     die();
 }
+
+$count = 0;
+$base_url = BASE_URL;
 
 displayToast();
 ?>
@@ -59,7 +63,6 @@ displayToast();
                                 </thead>
                                 <tbody>
                                 <?php
-                                $base_url = BASE_URL;
                                 if ($products != null){
                                     $productCount = 0;
                                     foreach ($products as $product){
@@ -71,7 +74,7 @@ displayToast();
                                                 <td>{$product["PRODUCT_NAME"]}</td>
                                                 <td>RM{$price}</td>
                                                 <td class='text-center'>
-                                                    <a type='button' class='btn btn-outline-primary' href='{$base_url}admin/manage-products.php/#{$product["PRODUCT_ID"]}'>
+                                                    <a type='button' class='btn btn-outline-primary' href='{$base_url}admin/manage-products.php'>
                                                         See More
                                                     </a>                                       
                                                 </td>
@@ -91,8 +94,72 @@ displayToast();
                             <span class="h3"><span id="user-count">0</span> users found</span>
                         </div>
                         <div class="shadow p-3 mb-3 mt-3 bg-body rounded row gx-3 mx-1">
-                            <div class="col">
-                                <span class="fs-1 mb-3">Users</span>
+                            <div class="row">
+                                <span class="fs-1 mb-3">Employees</span>
+                            </div>
+                            <div class="row">
+                                <span class="h4"><span id="employee-count">0</span> employee found</span>
+                            </div>
+
+                            <table class="table table-responsive table-hover">
+                                <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Username</th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Phone
+                                    <th scope="col">Authority</th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <?php
+
+                                if ($employees != null){
+                                    $employeeCount = 0;
+                                    foreach ($employees as $employee){
+                                        $fullName = $employee["FIRST_NAME"] . " " . $employee["LAST_NAME"];
+
+                                        $email = $employee["EMAIL"] ?? "-";
+                                        $phone = $employee["PHONE"] ?? "-";
+
+                                        $authority = $employee["AUTHORITY_LEVEL"] ?? 0;
+                                        $authority_badge = getAuthorityBadge($authority);
+
+                                        $count++;
+                                        $employeeCount++;
+                                        echo
+                                        "<tr class='align-middle'>
+                                            <th scope='row'>$employeeCount</th>
+                                            <td>{$fullName}</td>
+                                            <td>{$employee["USERNAME"]}</td>
+                                            <td>{$employee["EMAIL"]}</td>
+                                            <td>{$phone}</td>
+                                            <td>{$authority_badge}</td>
+                                            <td class='text-center'>
+                                                <a type='button' class='btn btn-outline-primary' href='{$base_url}admin/manage-users.php'>
+                                                    See More
+                                                </a>                                       
+                                            </td>
+                                        </tr>";
+
+                                    }
+                                    echo "<script>$('#employee-count').text(\"{$employeeCount}\");</script>";
+                                }
+                                else {
+                                    echo "<tr><td colspan='8' class='text-center'>No employee found</td></tr>";
+                                }
+                                ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="shadow p-3 mb-3 mt-3 bg-body rounded row gx-3 mx-1">
+                            <div class="row">
+                                <span class="fs-1 mb-3">Members</span>
+                            </div>
+                            <div class="row">
+                                <span class="h4"><span id="member-count">0</span> member found</span>
                             </div>
 
                             <table class="table table-responsive table-hover">
@@ -108,36 +175,36 @@ displayToast();
                                 </thead>
                                 <tbody>
                                 <?php
-                                $base_url = BASE_URL;
-                                if ($customers != null){
-                                    $userCount = 0;
-                                    foreach ($customers as $customer){
-                                        $fullName = $customer["FIRST_NAME"] . " " . $customer["LAST_NAME"];
+                                if ($members != null){
+                                    $memberCount = 0;
+                                    foreach ($members as $member){
+                                        $fullName = $member["FIRST_NAME"] . " " . $member["LAST_NAME"];
 
-                                        $address = ($customer["ADDRESS"] ?? "") . ", " . ($customer["POSTCODE"] ?? "")
-                                            . ", " . ($customer["CITY"] ?? "") . ", " . ($customer["STATE"] ?? "");
-                                        $phone = $customer["PHONE"] ?? "-";
+                                        $address = ($member["ADDRESS"] ?? "") . ", " . ($member["POSTCODE"] ?? "")
+                                            . ", " . ($member["CITY"] ?? "") . ", " . ($member["STATE"] ?? "");
+                                        $phone = $member["PHONE"] ?? "-";
 
-                                        $count = $userCount + 1;
+                                        $count++;
+                                        $memberCount++;
                                         echo
                                         "<tr class='align-middle'>
-                                            <th scope='row'>$count</th>
+                                            <th scope='row'>$memberCount</th>
                                             <td>{$fullName}</td>
                                             <td>{$address}</td>
-                                            <td>{$customer["EMAIL"]}</td>
+                                            <td>{$member["EMAIL"]}</td>
                                             <td>{$phone}</td>
                                             <td class='text-center'>
-                                                <a type='button' class='btn btn-outline-primary' href='{$base_url}admin/manage-users.php/#{$customer["CUSTOMER_ID"]}'>
+                                                <a type='button' class='btn btn-outline-primary' href='{$base_url}admin/manage-users.php'>
                                                     See More
                                                 </a>                                       
                                             </td>
                                         </tr>";
-                                        $userCount++;
+
                                     }
-                                    echo "<script>$('#user-count').text(\"{$userCount}\");</script>";
+                                    echo "<script>$('#member-count').text(\"{$memberCount}\");</script>";
                                 }
                                 else {
-                                    echo "<tr><td colspan='8' class='text-center'>No user found</td></tr>";
+                                    echo "<tr><td colspan='8' class='text-center'>No member found</td></tr>";
                                 }
                                 ?>
                                 </tbody>
@@ -154,6 +221,7 @@ displayToast();
     </div>
 </div>
 <?php body_script_tag_content();?>
+<?= "<script>$('#user-count').text(\"{$count}\");</script>" ?>
 </body>
 
 </html>

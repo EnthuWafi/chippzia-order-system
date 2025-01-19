@@ -4,13 +4,15 @@ session_start();
 
 require("../includes/functions.inc.php");
 
+employee_forbidden();
+
 displayToast();
 ?>
 
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Kerepek Funz</title>
+    <title><?= WEBSITE_NAME ?></title>
     <?php head_tag_content(); ?>
   </head>
   <body data-bs-spy="scroll" data-bs-target="#navbar" data-bs-root-margin="0px 0px -40%" data-bs-smooth-scroll="true" tabindex="0" bgcolor=#FF682D>
@@ -18,55 +20,58 @@ displayToast();
     <?php nav_menu() ?>
 
     <section id="billboard" class="position-relative overflow-hidden bg-body">
-      <div class="swiper main-swiper">
-        <div class="swiper-wrapper">
-          <div class="swiper-slide">
-            <div class="container">
-              <div class="row d-flex align-items-center">
-                <div class="col-md-6">
-                  <div class="banner-content">
-                    <h1 class="display-2 text-uppercase text-dark pb-5">Greatest Kerepek in History.</h1>
-                    <a href="account/shop.php" class="btn btn-medium btn-dark text-uppercase btn-rounded-none">Shop Product</a>
-                  </div>
+        <div class="swiper main-swiper">
+            <div class="swiper-wrapper">
+                <!-- First Slide -->
+                <div class="swiper-slide">
+                    <div class="container">
+                        <div class="row d-flex align-items-center">
+                            <div class="col-md-6">
+                                <div class="banner-content">
+                                    <h1 class="display-2 text-uppercase text-dark pb-5">Greatest Kerepek in History.</h1>
+                                    <a href="account/shop.php" class="btn btn-medium btn-dark text-uppercase btn-rounded-none">Shop Product</a>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <a class="image-holder" href="<?= BASE_URL ?>">
+                                    <img src="<?= BASE_URL ?>assets/images/banner-image.png" alt="banner" width="600" height="600">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-5">
-                  <a class="image-holder" href="/">
-                    <img src="assets/images/banner-image.png" alt="banner" width="600" height="600">
-                  </a>
+                <!-- Second Slide -->
+                <div class="swiper-slide">
+                    <div class="container">
+                        <div class="row d-flex align-items-center">
+                            <div class="col-md-6">
+                                <div class="banner-content">
+                                    <h1 class="display-2 text-uppercase text-dark pb-5">The only Kerepek that valid!</h1>
+                                    <a href="<?= BASE_URL ?>account/shop.php" class="btn btn-medium btn-dark text-uppercase btn-rounded-none">Shop Product</a>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <a class="image-holder" href="<?= BASE_URL ?>">
+                                    <img src="assets/images/banner-image.png" alt="banner" width="600" height="600">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
             </div>
-          </div>
-          <div class="swiper-slide">
-            <div class="container">
-              <div class="row d-flex flex-wrap align-items-center">
-                <div class="col-md-6">
-                  <div class="banner-content">
-                    <h1 class="display-2 text-uppercase text-dark pb-5">The  only Kerepek that valid!</h1>
-                    <a href="account/shop.php" class="btn btn-medium btn-dark text-uppercase btn-rounded-none">Shop Product</a>
-                  </div>
-                </div>
-                <div class="col-md-5">
-                  <div class="image-holder">
-                    <img src="assets/images/banner-image.png" alt="banner" width="600" height="600">
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
-      <div class="swiper-icon swiper-arrow swiper-arrow-prev">
-        <svg class="chevron-left">
-          <use xlink:href="#chevron-left" />
-        </svg>
-      </div>
-      <div class="swiper-icon swiper-arrow swiper-arrow-next">
-        <svg class="chevron-right">
-          <use xlink:href="#chevron-right" />
-        </svg>
-      </div>
+        <div class="swiper-icon swiper-arrow swiper-arrow-prev">
+            <svg class="chevron-left">
+                <use xlink:href="#chevron-left" />
+            </svg>
+        </div>
+        <div class="swiper-icon swiper-arrow swiper-arrow-next">
+            <svg class="chevron-right">
+                <use xlink:href="#chevron-right" />
+            </svg>
+        </div>
     </section>
+
     <section id="company-services" class="padding-large">
       <div class="container">
         <div class="row">
@@ -78,7 +83,7 @@ displayToast();
                 </svg>
               </div>
               <div class="icon-box-content">
-                <h3 class="card-title text-uppercase text-dark">Free delivery</h3>
+                <h3 class="card-title text-uppercase text-dark">Cheap delivery</h3>
                 <p>Where ever you live, we will reach you. Of course at an affordable price!.</p>
               </div>
             </div>
@@ -131,100 +136,39 @@ displayToast();
                 <div class="display-header d-flex justify-content-between pb-3">
                     <h2 class="display-7 text-dark text-uppercase">Our Special kerepek</h2>
                     <div class="btn-right">
-                        <a href="account/shop.php" class="btn btn-medium btn-normal text-uppercase">Go to Shop</a>
+                        <a href="<?= BASE_URL ?>account/shop.php" class="btn btn-medium btn-normal text-uppercase">Go to Shop</a>
                     </div>
                 </div>
                 <div class="swiper product-swiper">
                     <div class="swiper-wrapper">
-                        <div class="swiper-slide">
-                            <div class="product-card position-relative">
-                                <div class="image-holder">
-                                    <img src="assets/images/jejari-ubi (2).jpg" alt="product-item" class="img-fluid">
-                                </div>
-                                <div class="cart-concern position-absolute">
-                                    <div class="cart-button d-flex">
-                                        <a href="account/shop.php" class="btn btn-medium btn-black">Add to Cart<svg class="cart-outline"><use xlink:href="#cart-outline"></use></svg></a>
+                        <?php
+                        $products = retrieveAllProduct();
+                        if (isset($products)) {
+                            foreach ($products as $product) {
+                                echo '
+                                <div class="swiper-slide">
+                                    <div class="product-card position-relative">
+                                        <div class="image-holder">
+                                            <img src="'.$product["PRODUCT_IMAGE"].'" alt="product-item" class="img-fluid">
+                                        </div>
+                                        <div class="cart-concern position-absolute">
+                                            <div class="cart-button d-flex">
+                                                <a href="'. BASE_URL .'account/shop.php" class="btn btn-medium btn-black">Add to Cart<svg class="cart-outline"><use xlink:href="#cart-outline"></use></svg></a>
+                                            </div>
+                                        </div>
+                                        <div class="card-detail d-flex justify-content-between align-items-baseline pt-3">
+                                            <h3 class="card-title text-uppercase">
+                                                <a href="#">'.$product["PRODUCT_NAME"].'</a>
+                                            </h3>
+                                            <span class="item-price text-primary">'.$product["PRODUCT_PRICE"].'</span></div>
                                     </div>
-                                </div>
-                                <div class="card-detail d-flex justify-content-between align-items-baseline pt-3">
-                                    <h3 class="card-title text-uppercase">
-                                        <a href="#">Jejari Ubi</a>
-                                    </h3>
-                                    <span class="item-price text-primary">RM5.99</span></div>
-                            </div>
-                        </div>
-                        <div class="swiper-slide">
-                            <div class="product-card position-relative">
-                                <div class="image-holder">
-                                    <img src="assets/images/kerepek-pedas.jpg" alt="product-item" class="img-fluid">
-                                </div>
-                                <div class="cart-concern position-absolute">
-                                    <div class="cart-button d-flex">
-                                        <a href="account/shop.php" class="btn btn-medium btn-black">Add to Cart<svg class="cart-outline"><use xlink:href="#cart-outline"></use></svg></a>
-                                    </div>
-                                </div>
-                                <div class="card-detail d-flex justify-content-between align-items-baseline pt-3">
-                                    <h3 class="card-title text-uppercase">
-                                        <a href="#">Kerepek Pedas</a>
-                                    </h3>
-                                    <span class="item-price text-primary">RM6.99</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="swiper-slide">
-                            <div class="product-card position-relative">
-                                <div class="image-holder">
-                                    <img src="assets/images/kerepek-pisang.jpg" alt="product-item" class="img-fluid" width="800" height="800">
-                                </div>
-                                <div class="cart-concern position-absolute">
-                                    <div class="cart-button d-flex">
-                                        <a href="account/shop.php" class="btn btn-medium btn-black">Add to Cart<svg class="cart-outline"><use xlink:href="#cart-outline"></use></svg></a>
-                                    </div>
-                                </div>
-                                <div class="card-detail d-flex justify-content-between align-items-baseline pt-3">
-                                    <h3 class="card-title text-uppercase">
-                                        <a href="#">Kerepek Pisang </a>
-                                    </h3>
-                                    <span class="item-price text-primary">RM6.99</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="swiper-slide">
-                            <div class="product-card position-relative">
-                                <div class="image-holder">
-                                    <img src="assets/images/kerepe-kubi.jpg" alt="product-item" class="img-fluid" width="800" height="800" ove>
-                                </div>
-                                <div class="cart-concern position-absolute">
-                                    <div class="cart-button d-flex">
-                                        <a href="account/shop.php" class="btn btn-medium btn-black">Add to Cart<svg class="cart-outline"><use xlink:href="#cart-outline"></use></svg></a>
-                                    </div>
-                                </div>
-                                <div class="card-detail d-flex justify-content-between align-items-baseline pt-3">
-                                    <h3 class="card-title text-uppercase">
-                                        <a href="#">Kerepek Ubi Original</a>
-                                    </h3>
-                                    <span class="item-price text-primary">RM5.99</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="swiper-slide">
-                            <div class="product-card position-relative">
-                                <div class="image-holder">
-                                    <img src="assets/images/kerepek-pedas.jpg" alt="product-item" class="img-fluid" width="800" height="800" style="width: 800; height: 800;">
-                                </div>
-                                <div class="cart-concern position-absolute">
-                                    <div class="cart-button d-flex">
-                                        <a href="account/shop.php" class="btn btn-medium btn-black">Add to Cart<svg class="cart-outline"><use xlink:href="#cart-outline"></use></svg></a>
-                                    </div>
-                                </div>
-                                <div class="card-detail d-flex justify-content-between align-items-baseline pt-3">
-                                    <h3 class="card-title text-uppercase">
-                                        <a href="#">Kerepek Ubi Pedas</a>
-                                    </h3>
-                                    <span class="item-price text-primary">RM6.99</span>
-                                </div>
-                            </div>
-                        </div>
+                                </div>';
+                            }
+                        }
+                        else {
+                            echo "No products yet.";
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
@@ -236,13 +180,10 @@ displayToast();
       <div class="row d-flex flex-wrap align-items-center">
         <div class="col-md-6 col-sm-12">
           <div class="text-content offset-4 padding-medium">
-            <h3>10% off</h3>
-            <h2 class="display-2 pb-5 text-uppercase text-dark">Bundle Sales</h2>
+            <h3>Want Cheaper Chips?</h3>
+            <h2 class="display-2 pb-5 text-uppercase text-dark">Become a Member!</h2>
             <a href="<?= BASE_URL ?>account/shop.php" class="btn btn-medium btn-dark text-uppercase btn-rounded-none">Shop Sale</a>
           </div>
-        </div>
-        <div class="col-md-6 col-sm-12">
-          
         </div>
       </div>
     </section>

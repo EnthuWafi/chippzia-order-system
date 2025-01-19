@@ -9,6 +9,7 @@ member_login_required();
 $orders = retrieveAllCustomerOrders($_SESSION["user_data"]["CUSTOMER_ID"]);
 $orderCount = retrieveCustomerOrderCount($_SESSION["user_data"]["CUSTOMER_ID"])["COUNT"];
 
+displayToast();
 ?>
 <!DOCTYPE html>
 <html>

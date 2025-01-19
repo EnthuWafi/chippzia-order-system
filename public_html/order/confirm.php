@@ -13,6 +13,7 @@ $user = $_SESSION["user_data"];
 $orderID = $_SESSION["ORDER_ID"];
 
 $order = retrieveOrderSpecific($orderID);
+$loyaltyPointsReward = $_SESSION["loyaltyPointsReward"];
 $totalCost = $order["TOTAL_PRICE"];
 $redeemedPoints = $order["LOYALTY_POINTS_REDEEMED"] ?? 0;
 $redeemedValue = $redeemedPoints * 0.01; // Calculate value of redeemed points
@@ -51,7 +52,8 @@ $total = number_format(($totalCost), 2, ".", ",");
                     <div class="col-lg-12 me-3 mt-3 mb-5">
                         <div class="row ms-4">
                             <h2><strong>Thanks for shopping with <?= WEBSITE_NAME ?></strong></h2>
-                            <p>We hope you'll order again from us!</p>
+                            <p>You've been awarded <?= $loyaltyPointsReward ?> loyalty points for your purchase!
+                                <br/>We hope you'll order again from us!</p>
                         </div>
 
                         <div class="row">

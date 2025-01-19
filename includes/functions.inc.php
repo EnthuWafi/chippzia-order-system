@@ -21,6 +21,19 @@ function checkAuthority($level) {
     }
     return false;
 }
+function getAuthorityBadge($authorityLevel) {
+    switch ($authorityLevel) {
+        case 1:
+            return '<span class="badge bg-danger text-white">Superadmin</span>';
+        case 2:
+            return '<span class="badge bg-primary text-white">Admin</span>';
+        case 3:
+            return '<span class="badge bg-secondary text-white">Employee</span>';
+        default:
+            return '<span class="badge bg-dark text-white">Unknown</span>';
+    }
+}
+
 function current_page(): void
 {
     echo htmlspecialchars($_SERVER["PHP_SELF"]);
@@ -434,13 +447,16 @@ function admin_displayEmployeeUsers($employeeUsers) {
             $fullName = $user["FIRST_NAME"] . " " . $user["LAST_NAME"];
             $date = date_create($user["CREATED_AT"]);
             $dateFormatted = date_format($date, "d M Y");
+            $authority_badge = getAuthorityBadge($user["AUTHORITY_LEVEL"]);
             echo
             "<tr class='align-middle'>
                 <th scope='row'>$count</th>
                 <td>{$user["USERNAME"]}</td>
                 <td>{$fullName}</td>
                 <td>{$user["EMAIL"]}</td>
+                <td>{$user["PHONE"]}</td>
                 <td>{$dateFormatted}</td>
+                <td>{$authority_badge}</td>
                 <td class='position-relative text-center align-middle'>
                     <div class='position-absolute top-50 start-0 translate-middle-y'>
                         <a type='button' class='h4' href='mailto:{$user["EMAIL"]}'>

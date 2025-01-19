@@ -6,6 +6,7 @@ session_start();
 
 member_login_required();
 
+displayToast();
 
 $user = retrieveMember($_SESSION["user_data"]["CUSTOMER_ID"]);
 
@@ -19,6 +20,8 @@ $ordersLineSum = retrieveCustomerOrderLineSumQuantity($user["CUSTOMER_ID"])["SUM
 
 $orders = retrieveAllCustomerOrders($user["CUSTOMER_ID"], 5);
 $totalSpendDecimal = number_format((float)$totalSpend, 2, ".", ",");
+
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -45,10 +48,10 @@ $totalSpendDecimal = number_format((float)$totalSpend, 2, ".", ",");
                     </div>
 
                 </div>
-                <div class="row mt-3 h-100 ms-3">
+                <div class="row mt-3 ms-3 mb-3">
                     <!-- ORDERS-->
                     <div class="col">
-                        <div class="shadow p-3 mb-5 bg-body rounded row gx-3">
+                        <div class="shadow p-3 mb-5 bg-body rounded row gx-3 h-100">
                             <div class="col">
                                 <div class="row">
                                     <span class="fs-2"><?= $ordersCount; ?></span>
@@ -64,7 +67,7 @@ $totalSpendDecimal = number_format((float)$totalSpend, 2, ".", ",");
                     </div>
                     <!-- ORDERS LINE-->
                     <div class="col">
-                        <div class="shadow p-3 mb-5 bg-body rounded row gx-3">
+                        <div class="shadow p-3 mb-5 bg-body rounded row gx-3 h-100">
                             <div class="col">
                                 <div class="row">
                                     <span class="fs-2"><?= $ordersLineSum; ?></span>
@@ -80,7 +83,7 @@ $totalSpendDecimal = number_format((float)$totalSpend, 2, ".", ",");
                     </div>
                     <!-- TOTAL SPENT-->
                     <div class="col align-items-end">
-                        <div class="shadow p-3 gradient-primary rounded row gx-3">
+                        <div class="shadow p-3 gradient-primary rounded row gx-3 h-100">
                             <div class="col">
                                 <div class="row">
                                     <span class="fs-2 text-white">RM<?= $totalSpendDecimal ?></span>
@@ -95,6 +98,8 @@ $totalSpendDecimal = number_format((float)$totalSpend, 2, ".", ",");
                         </div>
                     </div>
                 </div>
+
+
 
                 <div class="row mt-1 gx-4 ms-3">
                     <div class="col">

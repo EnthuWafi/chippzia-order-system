@@ -29,7 +29,7 @@ body{
 
 .gradient-primary {
     background: rgb(255, 183, 0);
-    background: linear-gradient(rgb(196, 142, 18) 0%, rgb(255, 183, 0) 100%);
+    background: linear-gradient(to right, #FF8C00, #4EACFF);
 }
 
 @media (max-width: 575px) {

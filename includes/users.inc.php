@@ -555,17 +555,7 @@ function retrieveAllMembers() {
 }
 
 function retrieveAllCustomers() {
-    $sql = "SELECT
-                customer_id AS customer_id,
-                first_name AS first_name,
-                last_name AS last_name,
-                phone AS phone,
-                address AS address,
-                city AS city,
-                state AS state,
-                created_at AS created_at,
-                deleted_at AS deleted_at
-            FROM CUSTOMERS";
+    $sql = "SELECT * FROM CUSTOMERS";
     $conn = OpenConn();
 
     try {
@@ -707,12 +697,13 @@ function retrieveCustomerNameLike($query) {
 
 // NEW FUNCTION WAW
 //Update employee
-function updateEmployee($employeeID, $fname, $lname, $email, $phone, $username, $managerID, $authorityLevel=1) {
+function updateEmployee($employeeID, $fname, $lname, $email, $phone, $username, $password, $managerID, $authorityLevel=1) {
     $conn = OpenConn();
     $sql = "
         UPDATE EMPLOYEES
         SET FIRST_NAME = :firstname, LAST_NAME = :lastname, 
-            USERNAME = :username, EMAIL = :email, PHONE = :phone, 
+            USERNAME = :username, PASSWORD_HASH = :password, 
+            EMAIL = :email, PHONE = :phone, 
             MANAGER_ID = :managerid, AUTHORITY_LEVEL = :authoritylevel
         WHERE EMPLOYEE_ID = :employeeid";
 
@@ -720,7 +711,10 @@ function updateEmployee($employeeID, $fname, $lname, $email, $phone, $username, 
     try {
         $stmt = oci_parse($conn, $sql);
 
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
         oci_bind_by_name($stmt, ':username', $username);
+        oci_bind_by_name($stmt, ':password', $password_hash);
+
         oci_bind_by_name($stmt, ':firstname', $fname);
         oci_bind_by_name($stmt, ':lastname', $lname);
         oci_bind_by_name($stmt, ':email', $email);
@@ -906,6 +900,87 @@ function retrieveCountAuthorityLevel($authorityLevel) {
         }
         CloseConn($conn);
     }
+    return null;
+}
+
+function retrieveAllMembersLike($query) {
+    $sql = "SELECT
+                c.*, m.*
+            FROM CUSTOMERS c
+            INNER JOIN MEMBERS M on c.CUSTOMER_ID = M.CUSTOMER_ID
+            WHERE (FIRST_NAME LIKE :query OR LAST_NAME LIKE :query 
+               OR USERNAME LIKE :query OR EMAIL LIKE :query)";
+    $query = "%$query%";
+    $conn = OpenConn();
+
+    try {
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ':query', $query);
+
+        if (!oci_execute($stmt)) {
+            throw new Exception(oci_error($stmt)['message']);
+        }
+
+        $result = [];
+        while ($row = oci_fetch_assoc($stmt)) {
+            $result[] = $row;
+        }
+
+        oci_free_statement($stmt);
+        CloseConn($conn);
+
+        if ($result) {
+            return $result;
+        }
+    }
+    catch (Exception $e) {
+        createLog($e->getMessage());
+        if (isset($stmt)) {
+            oci_free_statement($stmt);
+        }
+        CloseConn($conn);
+    }
+
+    return null;
+}
+
+
+function retrieveAllEmployeeLike($query) {
+    $sql = "SELECT *
+            FROM EMPLOYEES 
+            WHERE (FIRST_NAME LIKE :query OR LAST_NAME LIKE :query 
+               OR USERNAME LIKE :query OR EMAIL LIKE :query)";
+    $query = "%$query%";
+    $conn = OpenConn();
+
+    try {
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ':query', $query);
+
+        if (!oci_execute($stmt)) {
+            throw new Exception(oci_error($stmt)['message']);
+        }
+
+        $result = [];
+        while ($row = oci_fetch_assoc($stmt)) {
+            $result[] = $row;
+        }
+
+        oci_free_statement($stmt);
+        CloseConn($conn);
+
+        if ($result) {
+            return $result;
+        }
+    }
+    catch (Exception $e) {
+        createLog($e->getMessage());
+        if (isset($stmt)) {
+            oci_free_statement($stmt);
+        }
+        CloseConn($conn);
+    }
+
     return null;
 }
 
