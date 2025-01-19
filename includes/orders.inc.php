@@ -434,7 +434,7 @@ function deleteOrder($orderID){
 // TODO: this function has to be updated to include the employee who updated the order
 // In accordance with the new database and all that jazz :shrug:
 function updateOrderStatusAndEmployeeID($orderID, $orderStatus, $employeeID){
-    $sql= "UPDATE orders SET order_status = :order_status AND employee_id = :employee_id
+    $sql= "UPDATE orders SET order_status = :order_status, EMPLOYEE_ID = :employee_id
             WHERE order_id = :order_id";
     $conn = OpenConn();
 
@@ -533,7 +533,10 @@ function retrieveAllProductBought() {
 
 //will retrieve only one order so one is enough
 function retrieveOrderSpecific($orderID) {
-    $sql = "SELECT o.*, c.* FROM orders o
+    $sql = "SELECT 
+             o.created_at AS order_created_at, 
+            c.created_at AS customer_created_at, 
+            o.*, c.* FROM orders o
             INNER JOIN customers c on o.customer_id = c.customer_id
             WHERE o.order_id = :order_id";
 
@@ -562,6 +565,43 @@ function retrieveOrderSpecific($orderID) {
             oci_free_statement($stmt);
         }
         die("Error: cannot get the order!");
+    }
+    return null;
+}
+
+function retrieveOrderSpecificMemberOnly($orderID) {
+    $sql = "SELECT 
+            o.created_at AS order_created_at, 
+            c.created_at AS customer_created_at, 
+            o.*, c.*, m.* FROM orders o
+            INNER JOIN customers c on o.customer_id = c.customer_id
+            INNER JOIN members m on c.CUSTOMER_ID = m.customer_id
+            WHERE o.order_id = :order_id";
+
+    $conn = OpenConn();
+
+    try{
+        $stmt = oci_parse($conn, $sql);
+        oci_bind_by_name($stmt, ':order_id', $orderID);
+
+        if (!oci_execute($stmt)) {
+            throw new Exception(oci_error($stmt)['message']);
+        }
+
+        $result = oci_fetch_assoc($stmt);
+
+        oci_free_statement($stmt);
+        CloseConn($conn);
+
+        if ($result) {
+            return $result;
+        }
+    }
+    catch (Exception $e){
+        createLog($e->getMessage());
+        if ($stmt) {
+            oci_free_statement($stmt);
+        }
     }
     return null;
 }

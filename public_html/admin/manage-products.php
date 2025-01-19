@@ -11,6 +11,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try{
         if(!empty($postedToken)){
             if(isTokenValid($postedToken)){
+                if (!checkAuthority(2)) {
+                    throw new Exception("Requires Admin authority!");
+                }
+
                 //update product todo
                 if (isset($_POST["update"])) {
                     $productID = htmlspecialchars($_POST["product_id"]);
@@ -174,9 +178,11 @@ $token = getToken();
                                 <span class="fs-1 mb-3">Products</span>
                             </div>
                             <div class="col text-end">
+                                <?php if (checkAuthority(2)): ?>
                                 <button type="button" class="btn btn-danger add-product">
                                     <span class="h5"><i class="bi bi-plus-circle"> </i>Add</span>
                                 </button>
+                                <?php endif; ?>
                             </div>
                             <table class="table table-responsive table-hover table-bordered">
                                 <thead class="table-light">

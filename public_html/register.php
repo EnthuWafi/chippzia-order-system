@@ -18,6 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $email = filter_var($_POST["email"], FILTER_SANITIZE_SPECIAL_CHARS);
                 $username = filter_var($_POST["username"], FILTER_SANITIZE_SPECIAL_CHARS);
                 $password = filter_var($_POST["password"], FILTER_SANITIZE_SPECIAL_CHARS);
+                $password_repeat = filter_var($_POST["password-repeat"], FILTER_SANITIZE_SPECIAL_CHARS);
+
+                if ($password != $password_repeat) {
+                    throw new Exception("Password did not match");
+                }
 
 //                //check if exists
 //                $user = checkUser($username, $email);
@@ -97,19 +102,21 @@ $token = getToken();
 
             <label for="psw"><b>Password</b></label>
             <div style="position: relative; width: 100%;">
-                <input type="password" placeholder name="psw" id="password" required>
+                <input type="password" placeholder name="password" id="password" required>
                 <span class="toggle-password" onclick="togglePassword('password')">Show</span>
             </div>
 
             <label for="psw-repeat"><b>Repeat Password</b></label>
             <div style="position: relative; width: 100%;">
-                <input type="password" placeholder name="psw-repeat" id="password-repeat" required>
+                <input type="password" placeholder name="password-repeat" id="password-repeat" required>
                 <span class="toggle-password" onclick="togglePassword('password-repeat')">Show</span>
             </div>
 
             <label>
                 <input type="checkbox" checked="checked" name="remember"> Remember me
             </label>
+
+            <input type="hidden" name="token" value="<?php echo $token; ?>">
 
             <div class="clearfix">
                 <button type="submit" class="signupbtn">Create Account</button>

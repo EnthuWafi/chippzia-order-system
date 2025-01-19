@@ -20,7 +20,7 @@ $redeemedValue = $redeemedPoints * 0.01; // Calculate value of redeemed points
 
 
 $orderCode = sprintf('%08d', $orderID);
-$date = date_create($order["CREATED_AT"]);
+$date = date_create($order["ORDER_CREATED_AT"]);
 $date = date_format($date, "d M Y");
 
 // Adjusted calculations

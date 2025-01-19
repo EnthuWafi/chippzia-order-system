@@ -20,6 +20,14 @@ $productBought = retrieveAllProductBought()["SUM"] ?? 0;
 $orders = retrieveAllOrders5LIMIT();
 
 $subordinates = getImmediateSubordinates($_SESSION["user_data"]["EMPLOYEE_ID"]);
+
+$name = ($_SESSION["user_data"]["FIRST_NAME"] ?? "") . " " . ($_SESSION["user_data"]["LAST_NAME"] ?? "");
+$today = date_create();
+$date = date_format($today, "D, d M Y");
+
+$manager = retrieveEmployee($_SESSION["user_data"]["MANAGER_ID"]);
+$authorityBadge = getAuthorityBadge($_SESSION["user_data"]["AUTHORITY_LEVEL"]);
+
 displayToast();
 ?>
 <!DOCTYPE html>
@@ -40,6 +48,20 @@ displayToast();
 
             <!-- todo DASHBOARD here  -->
             <div class="container">
+                <div class="row mt-4 gx-4 ms-3">
+                    <div class="col-auto">
+                        <span class="h3">Hello there, <?= $name ?? "-" ?></span><br>
+                        <span class="lead">Today is <?= $date ?></span><br>
+                        <?php if (isset($manager)): ?>
+                        <span class="lead">Your manager is <?php echo ($manager["FIRST_NAME"] ?? "") . " " . ($manager["LAST_NAME"] ?? "") ?> </span>
+                        <?php else: ?>
+                        <span class="lead">You do not have a manager </span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="col text-end">
+                        <?= $authorityBadge ?>
+                    </div>
+                </div>
                 <div class="row mt-4 gx-4 ms-3">
                     <!-- USER COUNT -->
                     <div class="col">

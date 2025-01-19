@@ -296,12 +296,19 @@ function orders_adminOrders($orders) {
         <option value='COMPLETED'>Completed</option>
         <option value='CANCELLED'>Cancelled</option>";
         foreach ($orders as $order) {
+
             $count = 1;
             //date
             $date = date_create($order["CREATED_AT"]);
             $dateFormatted = date_format($date, "d M Y");
 
             $orderLines = retrieveAllOrderLines($order["ORDER_ID"]);
+
+            $employee = null;
+
+            if (!empty($order["EMPLOYEE_ID"]) && $order["EMPLOYEE_ID"] != "") {
+                $employee = retrieveEmployee($order["EMPLOYEE_ID"]);
+            }
             $orderLineStr = "";
             foreach ($orderLines as $orderLine) {
                 $price = number_format((float)$orderLine["PRICE"], 2, ".", ",");
@@ -318,6 +325,10 @@ function orders_adminOrders($orders) {
                 $count++;
             }
             //code
+            $employeeString = "";
+            if ($employee && isset($employee["FIRST_NAME"], $employee["LAST_NAME"])) {
+                $employeeString = "<span>Updated by " . $employee["FIRST_NAME"] . " " . $employee["LAST_NAME"] . "</span>";
+            }
             $link = BASE_URL."order/view.php?orderId=".$order["ORDER_ID"];
             $orderCode = sprintf('%08d', $order["ORDER_ID"]);
             $total = number_format((float)$order["TOTAL_PRICE"], 2, ".", ",");
@@ -354,6 +365,9 @@ function orders_adminOrders($orders) {
             
         </div>      
     </div>
+</div>
+<div class='row my-2'>
+    ${employeeString}
 </div>
 <hr>
 <div class='row mb-4'>

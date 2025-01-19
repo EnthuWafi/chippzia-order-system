@@ -24,7 +24,7 @@ function sendMail($recipientEmail, $subject, $body)
     $mail->SMTPSecure = 'tls';
 
 // Sender info
-    $mail->setFrom('info@gmail.com', 'Kerepek Funz Information System');
+    $mail->setFrom('info@gmail.com', 'Chipzzia Information System');
 
 // Add a recipient
     $mail->addAddress($recipientEmail);

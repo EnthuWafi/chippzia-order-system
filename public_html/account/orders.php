@@ -44,7 +44,6 @@ displayToast();
                         }
                         ?>
 
-                        ?>
                     </div>
                 </div>
             </div>

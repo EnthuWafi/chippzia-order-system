@@ -11,12 +11,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try{
         if(!empty($postedToken)){
             if(isTokenValid($postedToken)){
-                //delete member todo
-//                if (isset($_POST["delete"])) {
-//                    $userID = htmlspecialchars($_POST["user_id"]);
-//                    deleteUser($userID) or throw new Exception("User wasn't able to be deleted!");
-//                    makeToast("success", "Account successfully deleted!", "Success");
-//                }
+
+                if (!checkAuthority(1)) {
+                    throw new Exception("Requires Super Admin authority!");
+                }
+
                 if (isset($_POST["delete_member"])) {
                     $customerID = htmlspecialchars($_POST["customer_id"]);
                     deleteCustomer($customerID) or throw new Exception("Customer wasn't able to be deleted!");
@@ -146,9 +145,11 @@ $token = getToken();
                                     <span class="h3"><?= $employeeCount ?> employees found</span>
                                 </div>
                                 <div class="col text-end ">
+                                    <?php if (checkAuthority(1)): ?>
                                     <button type="button" class="btn btn-danger add-employee">
                                         <span class="h5"><i class="bi bi-plus-circle"> </i>Add</span>
                                     </button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <div class="row mt-3 px-3 table-responsive">
@@ -592,6 +593,7 @@ $token = getToken();
                 }
             });
         });
+
     });
 </script>
 </body>
